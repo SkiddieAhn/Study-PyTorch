@@ -8,10 +8,10 @@ def create_default_local_file():
 
     empty_str = '\'\''
     default_settings = OrderedDict({
-        'workspace_dir': empty_str,
+        'workspace_dir': '/home/ahnsunghyun/pytorch/VisualTracking/TransT/checkpoints',
         'tensorboard_dir': 'self.workspace_dir + \'/tensorboard/\'',
         'lasot_dir': empty_str,
-        'got10k_dir': empty_str,
+        'got10k_dir': '/media/ahnsunghyun/HDD/dataset/GOT-10k/train',
         'trackingnet_dir': empty_str,
         'coco_dir': empty_str,
         'lvis_dir': empty_str,

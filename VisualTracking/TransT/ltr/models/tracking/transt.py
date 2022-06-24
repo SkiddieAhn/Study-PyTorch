@@ -219,8 +219,24 @@ class MLP(nn.Module):
         return x
 
 
+"""
 @model_constructor
 def transt_resnet50(settings):
+    num_classes = 1
+    backbone_net = build_backbone(settings, backbone_pretrained=True)
+    featurefusion_network = build_featurefusion_network(settings)
+    model = TransT(
+        backbone_net,
+        featurefusion_network,
+        num_classes=num_classes
+    )
+    device = torch.device(settings.device)
+    model.to(device)
+    return model
+"""
+
+@model_constructor
+def transt_effnet(settings):
     num_classes = 1
     backbone_net = build_backbone(settings, backbone_pretrained=True)
     featurefusion_network = build_featurefusion_network(settings)

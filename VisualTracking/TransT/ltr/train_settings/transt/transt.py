@@ -12,7 +12,7 @@ def run(settings):
     # Most common settings are assigned in the settings struct
     settings.device = 'cuda'
     settings.description = 'TransT with default settings.'
-    settings.batch_size = 38
+    settings.batch_size = 4
     settings.num_workers = 4
     settings.multi_gpu = True
     settings.print_interval = 1
@@ -36,10 +36,7 @@ def run(settings):
     settings.featurefusion_layers = 4
 
     # Train datasets
-    lasot_train = Lasot(settings.env.lasot_dir, split='train')
     got10k_train = Got10k(settings.env.got10k_dir, split='vottrain')
-    trackingnet_train = TrackingNet(settings.env.trackingnet_dir, set_ids=list(range(4)))
-    coco_train = MSCOCOSeq(settings.env.coco_dir)
 
     # The joint augmentation transform, that is applied to the pairs jointly
     transform_joint = tfm.Transform(tfm.ToGrayscale(probability=0.05))
@@ -60,15 +57,23 @@ def run(settings):
                                                       joint_transform=transform_joint)
 
     # The sampler for training
-    dataset_train = sampler.TransTSampler([lasot_train, got10k_train, coco_train, trackingnet_train], [1,1,1,1],
+    dataset_train = sampler.TransTSampler([got10k_train], None,
                                 samples_per_epoch=1000*settings.batch_size, max_gap=100, processing=data_processing_train)
 
     # The loader for training
     loader_train = LTRLoader('train', dataset_train, training=True, batch_size=settings.batch_size, num_workers=settings.num_workers,
                              shuffle=True, drop_last=True, stack_dim=0)
+    
+    print('=========================================')
+    print("DataLoader ok!!")
+    print('=========================================')
 
     # Create network and actor
-    model = transt_models.transt_resnet50(settings)
+    #model = transt_models.transt_resnet50(settings)
+    model = transt_models.transt_effnet(settings)
+    print('=========================================')
+    print("model load ok!!")
+    print('=========================================')
 
     # Wrap the network for multi GPU training
     if settings.multi_gpu:
@@ -96,4 +101,7 @@ def run(settings):
     trainer = LTRTrainer(actor, [loader_train], optimizer, settings, lr_scheduler)
 
     # Run training (set fail_safe=False if you are debugging)
+    print('=========================================')
+    print("Training Start!!")
+    print('=========================================')
     trainer.train(1000, load_latest=True, fail_safe=True)

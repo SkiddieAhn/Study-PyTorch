@@ -17,9 +17,9 @@ import cv2
 import torch
 import numpy as np
 
+from pysot_toolkit.toolkit.utils.region import vot_overlap, vot_float2str
 from pysot_toolkit.bbox import get_axis_aligned_bbox
 from pysot_toolkit.toolkit.datasets import DatasetFactory
-from pysot_toolkit.toolkit.utils.region import vot_overlap, vot_float2str
 from pysot_toolkit.trackers.tracker import Tracker
 from pysot_toolkit.trackers.net_wrappers import NetWithBackbone
 
@@ -40,7 +40,7 @@ def main():
     # load config
 
     dataset_root = '/media/ahnsunghyun/HDD/dataset/test_data/test' #Absolute path of the dataset
-    net_path = '/home/ahnsunghyun/TransT/pytracking/networks/transt.pth' #Absolute path of the model
+    net_path = '/home/ahnsunghyun/pytorch/VisualTracking/TransT/pytracking/networks/transt.pth' #Absolute path of the model
 
     # create model
     net = NetWithBackbone(net_path=net_path, use_gpu=True)

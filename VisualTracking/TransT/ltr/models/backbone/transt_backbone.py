@@ -71,6 +71,7 @@ class BackboneBase(nn.Module):
         return out
 
 
+'''
 class Backbone(BackboneBase):
     """ResNet backbone with frozen BatchNorm."""
     def __init__(self,
@@ -79,6 +80,14 @@ class Backbone(BackboneBase):
                  frozen_layers):
         backbone = backbones.resnet50(output_layers=output_layers, pretrained=pretrained,
                                       frozen_layers=frozen_layers)
+        num_channels = 1024
+        super().__init__(backbone, num_channels)
+'''
+
+class MyBackbone(BackboneBase):
+    """EfficientNet Backbone"""
+    def __init__(self, pretrained):
+        backbone = backbones.effnet(pretrained)
         num_channels = 1024
         super().__init__(backbone, num_channels)
 
@@ -101,7 +110,8 @@ class Joiner(nn.Sequential):
 
 def build_backbone(settings, backbone_pretrained=True, frozen_backbone_layers=()):
     position_embedding = build_position_encoding(settings)
-    backbone = Backbone(output_layers=['layer3'], pretrained=backbone_pretrained, frozen_layers=frozen_backbone_layers)
+    #backbone = Backbone(output_layers=['layer3'], pretrained=backbone_pretrained, frozen_layers=frozen_backbone_layers)
+    backbone = MyBackbone(pretrained=backbone_pretrained)
     model = Joiner(backbone, position_embedding)
     model.num_channels = backbone.num_channels
     return model
