@@ -1,7 +1,7 @@
 from got10k_toolkit.toolkit.experiments import ExperimentGOT10k
 
 #Specify the path
-dataset_root= '' #Absolute path of the datasets
+dataset_root= '/media/ahnsunghyun/HDD/dataset/test_data' #Absolute path of the datasets
 
 #Evaluation
 experiment = ExperimentGOT10k(

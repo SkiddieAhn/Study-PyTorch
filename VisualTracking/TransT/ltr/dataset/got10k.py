@@ -41,7 +41,6 @@ class Got10k(BaseVideoDataset):
 
         # all folders inside the root
         self.sequence_list = self._get_sequence_list()
-
         # seq_id is the index of the folder inside the toolkit root path
         if split is not None:
             if seq_ids is not None:
@@ -53,17 +52,24 @@ class Got10k(BaseVideoDataset):
                 file_path = os.path.join(ltr_path, 'data_specs', 'got10k_val_split.txt')
             elif split == 'vottrain':
                 file_path = os.path.join(ltr_path, 'data_specs', 'got10k_vot_train_split.txt')
+            elif split == 'vottrain-mini':
+                pass # 아래 주석 참고!!
             elif split == 'votval':
                 file_path = os.path.join(ltr_path, 'data_specs', 'got10k_vot_val_split.txt')
             elif split == 'all':
                 file_path = os.path.join(ltr_path, 'data_specs', 'got10k_all.txt')
             else:
                 raise ValueError('Unknown split name.')
-            seq_ids = pandas.read_csv(file_path, header=None, squeeze=True, dtype=np.int64).values.tolist()
+            # vottrain-mini는 txt파일이 따로 없음
+            if split != 'vottrain-mini':
+                seq_ids = pandas.read_csv(file_path, header=None, squeeze=True, dtype=np.int64).values.tolist()
         elif seq_ids is None:
             seq_ids = list(range(0, len(self.sequence_list)))
 
-        self.sequence_list = [self.sequence_list[i] for i in seq_ids]
+        # vottrain-mini는 모든 데이터로 학습함, 나머지는 일부 데이터로 학습함
+        # 어떤 데이터로 학습할지는 got10j_vot_train_split.txt를 참고하면 됨 
+        if split != 'vottrain-mini':
+            self.sequence_list = [self.sequence_list[i] for i in seq_ids] 
 
         if data_fraction is not None:
             self.sequence_list = random.sample(self.sequence_list, int(len(self.sequence_list)*data_fraction))

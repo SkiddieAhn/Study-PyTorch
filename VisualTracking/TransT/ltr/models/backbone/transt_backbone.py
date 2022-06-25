@@ -54,14 +54,15 @@ class FrozenBatchNorm2d(torch.nn.Module):
 
 
 class BackboneBase(nn.Module):
-
+    """ResNet BackboneBase"""
     def __init__(self, backbone: nn.Module, num_channels: int):
         super().__init__()
         self.body = backbone
         self.num_channels = num_channels
 
     def forward(self, tensor_list: NestedTensor):
-        xs = self.body(tensor_list.tensors)
+        xs = self.body(tensor_list.tensors) # --> len(xs.items())==1
+        # make out object
         out: Dict[str, NestedTensor] = {}
         for name, x in xs.items():
             m = tensor_list.mask
@@ -70,8 +71,26 @@ class BackboneBase(nn.Module):
             out[name] = NestedTensor(x, mask)
         return out
 
+class MyBackboneBase(nn.Module):
+    """EfficientNet BackboneBase"""
+    def __init__(self, backbone: nn.Module, num_channels: int):
+        super().__init__()
+        self.body = backbone
+        self.num_channels = num_channels
 
-'''
+    def forward(self, tensor_list: NestedTensor):
+        x = self.body(tensor_list.tensors)
+        name='myeffnet'
+        # make out object
+        out: Dict[str, NestedTensor] = {}
+        m = tensor_list.mask
+        assert m is not None
+        mask = F.interpolate(m[None].float(), size=x.shape[-2:]).to(torch.bool)[0]
+        out[name] = NestedTensor(x, mask)
+        return out
+
+
+
 class Backbone(BackboneBase):
     """ResNet backbone with frozen BatchNorm."""
     def __init__(self,
@@ -82,9 +101,9 @@ class Backbone(BackboneBase):
                                       frozen_layers=frozen_layers)
         num_channels = 1024
         super().__init__(backbone, num_channels)
-'''
 
-class MyBackbone(BackboneBase):
+
+class MyBackbone(MyBackboneBase):
     """EfficientNet Backbone"""
     def __init__(self, pretrained):
         backbone = backbones.effnet(pretrained)

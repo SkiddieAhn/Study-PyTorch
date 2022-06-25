@@ -12,7 +12,7 @@ def run(settings):
     # Most common settings are assigned in the settings struct
     settings.device = 'cuda'
     settings.description = 'TransT with default settings.'
-    settings.batch_size = 4
+    settings.batch_size = 2
     settings.num_workers = 4
     settings.multi_gpu = True
     settings.print_interval = 1
@@ -36,7 +36,7 @@ def run(settings):
     settings.featurefusion_layers = 4
 
     # Train datasets
-    got10k_train = Got10k(settings.env.got10k_dir, split='vottrain')
+    got10k_train = Got10k(settings.env.got10k_dir, split='vottrain-mini')
 
     # The joint augmentation transform, that is applied to the pairs jointly
     transform_joint = tfm.Transform(tfm.ToGrayscale(probability=0.05))
@@ -58,7 +58,7 @@ def run(settings):
 
     # The sampler for training
     dataset_train = sampler.TransTSampler([got10k_train], None,
-                                samples_per_epoch=1000*settings.batch_size, max_gap=100, processing=data_processing_train)
+                                samples_per_epoch=100*settings.batch_size, max_gap=100, processing=data_processing_train)
 
     # The loader for training
     loader_train = LTRLoader('train', dataset_train, training=True, batch_size=settings.batch_size, num_workers=settings.num_workers,
@@ -104,4 +104,4 @@ def run(settings):
     print('=========================================')
     print("Training Start!!")
     print('=========================================')
-    trainer.train(1000, load_latest=True, fail_safe=True)
+    trainer.train(10, load_latest=True, fail_safe=True)

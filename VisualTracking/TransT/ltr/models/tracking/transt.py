@@ -219,7 +219,6 @@ class MLP(nn.Module):
         return x
 
 
-"""
 @model_constructor
 def transt_resnet50(settings):
     num_classes = 1
@@ -233,7 +232,7 @@ def transt_resnet50(settings):
     device = torch.device(settings.device)
     model.to(device)
     return model
-"""
+
 
 @model_constructor
 def transt_effnet(settings):

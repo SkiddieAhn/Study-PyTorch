@@ -5,6 +5,9 @@ from ltr.admin.stats import AverageMeter, StatValue
 from ltr.admin.tensorboard import TensorboardWriter
 import torch
 import time
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 class LTRTrainer(BaseTrainer):
@@ -44,6 +47,7 @@ class LTRTrainer(BaseTrainer):
         for param, default_value in default.items():
             if getattr(self.settings, param, None) is None:
                 setattr(self.settings, param, default_value)
+    
 
     def cycle_dataset(self, loader):
         """Do a cycle of training or validation."""
@@ -52,7 +56,6 @@ class LTRTrainer(BaseTrainer):
         torch.set_grad_enabled(loader.training)
 
         self._init_timing()
-
         for i, data in enumerate(loader, 1):
             if self.move_data_to_gpu:
                 data = data.to(self.device)

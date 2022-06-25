@@ -63,7 +63,7 @@ class BaseTrainer:
             try:
                 if load_latest:
                     self.load_checkpoint()
-
+                
                 for epoch in range(self.epoch+1, max_epochs+1):
                     self.epoch = epoch
 
@@ -84,8 +84,6 @@ class BaseTrainer:
                     print('Restarting training from last epoch ...')
                 else:
                     raise
-
-        print('Finished training!')
 
 
     def train_epoch(self):

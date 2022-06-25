@@ -3,7 +3,7 @@ class EnvironmentSettings:
         self.workspace_dir = '/home/ahnsunghyun/pytorch/VisualTracking/TransT/checkpoints'    # Base directory for saving network checkpoints.
         self.tensorboard_dir = self.workspace_dir + '/tensorboard/'    # Directory for tensorboard files.
         self.lasot_dir = ''
-        self.got10k_dir = '/media/ahnsunghyun/HDD/dataset/GOT-10k/train'
+        self.got10k_dir = '/media/ahnsunghyun/HDD/dataset/GOT-10k-mini/train'
         self.trackingnet_dir = ''
         self.coco_dir = ''
         self.lvis_dir = ''
