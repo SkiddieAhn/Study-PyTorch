@@ -58,7 +58,7 @@ def run(settings):
 
     # The sampler for training
     dataset_train = sampler.TransTSampler([got10k_train], None,
-                                samples_per_epoch=100*settings.batch_size, max_gap=100, processing=data_processing_train)
+                                samples_per_epoch=1000*settings.batch_size, max_gap=100, processing=data_processing_train)
 
     # The loader for training
     loader_train = LTRLoader('train', dataset_train, training=True, batch_size=settings.batch_size, num_workers=settings.num_workers,
@@ -93,8 +93,10 @@ def run(settings):
             "lr": 1e-5,
         },
     ]
+
     optimizer = torch.optim.AdamW(param_dicts, lr=1e-4,
                                   weight_decay=1e-4)
+
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 500)
 
     # Create trainer
@@ -104,4 +106,4 @@ def run(settings):
     print('=========================================')
     print("Training Start!!")
     print('=========================================')
-    trainer.train(10, load_latest=True, fail_safe=True)
+    trainer.train(50, load_latest=True, fail_safe=True)

@@ -44,7 +44,6 @@ def load_network(network_dir=None, checkpoint=None, constructor_fun_name=None, c
 
     The extra keyword arguments are supplied to the network constructor to replace saved ones.
     """
-
     if network_dir is not None:
         net_path = Path(network_dir)
     else:
@@ -76,6 +75,9 @@ def load_network(network_dir=None, checkpoint=None, constructor_fun_name=None, c
         raise TypeError
 
     # Load network
+    print("=====================Test=======================")
+    print(checkpoint_path)
+    print("================================================")
     checkpoint_dict = torch_load_legacy(checkpoint_path)
 
     # Construct network model
