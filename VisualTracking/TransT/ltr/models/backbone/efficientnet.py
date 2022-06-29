@@ -1,12 +1,20 @@
-from efficientnet_pytorch_edit import EfficientNet
+import ltr.admin.settings as ws_settings
+import ltr.models.tracking.transt as transt_models
+import ltr.models.backbone as backbones
+import torch
 import torch.nn as nn
-import math
+import torch.nn.functional as F
+import pytorch_model_summary
+import math,copy
+from torchvision_edit import models_e
+from torchvision_edit.ops.misc import Conv2dNormActivation
+from efficientnet_pytorch_edit import EfficientNet,utils
 
 class MyEfficientNet(nn.Module):
-    def __init__(self,efficientnet,eff_in_size=380,eff_out_chnl=1792):
+    def __init__(self,efficientnet,eff_in_size=600,eff_out_chnl=2560):
         super().__init__()
 
-        # EfficientNet Input Size (default:380x380)
+        # EfficientNet Input Size (default:600x600)
         self.EffInSize=eff_in_size
         # EfficientNet Output Size (default:12x12)
         self.EffOutSize=math.ceil(eff_in_size/32)
@@ -53,78 +61,52 @@ class MyEfficientNet(nn.Module):
 
         # Search Region
         if y == self.SearchImageSize:
-            x=self.upsampleSin(x) # (256x256) -> (380x380)
-            x = self.effConv(x) # (380x380) -> (12x12)
-            x=self.upsampleSout(x) # (12x12) -> (32x32)
+            x=self.upsampleSin(x) # (256x256) -> (600x600)
+            x = self.effConv(x) # (600x600) -> (76x76)
+            x=self.upsampleSout(x) # (19x19) -> (32x32)
         # Template
         elif y==self.TemplateImageSize:
-            x=self.upsampleTin(x) # (256x256) -> (380x380)
-            x = self.effConv(x) # (380x380) -> (12x12)
-            x=self.upsampleTout(x) # (12x12) -> (16x16)
+            x=self.upsampleTin(x) # (128x128) -> (600x600)
+            x = self.effConv(x) # (600x600) -> (19x19)
+            x=self.upsampleTout(x) # (19x19) -> (16x16)
             
         # output channel number is identical with resnet50 
-        # (32x32x1792) -> (32x32x1024), (16x16x1792) -> (16x16x1024)
+        # (32x32x2560) -> (32x32x1024), (16x16x2560) -> (16x16x1024)
         x=self.stage1(x)
         
-        # BottleNeck with Residual Connection 
+        # BottleNeck with Residual Conn256ection 
         fx=self.stage2(x) # F(x) 
         x=fx+x  # F(x)+x
         x=self.relu(x)
         
         return x
 
-class MyEfficientNet2(nn.Module):
-    def __init__(self,efficientnet):
-        super().__init__()
-        # EfficientNet Feature Extractor
-        self.effConv = efficientnet
-
-        # output channel number is identical with resnet50 
-        self.stage=nn.Sequential(
-            nn.Conv2d(in_channels=80,out_channels=160,kernel_size=1),
-            nn.BatchNorm2d(160),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=160,out_channels=320,kernel_size=3,padding=1),
-            nn.BatchNorm2d(320),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=320,out_channels=640,kernel_size=1),
-            nn.BatchNorm2d(640),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=640,out_channels=1024,kernel_size=3,padding=1),
-            nn.BatchNorm2d(1024),
-            nn.ReLU()
-        )
-    
-    def forward(self,x):
-        x=self.effConv(x)
-        x=self.stage(x)
-        return x
-
-def freeze_model(model):
-    for ct, child in enumerate(model.children()):
-        if isinstance(child,nn.modules.batchnorm.BatchNorm2d):
-            for param in child.parameters():
-                param.requires_grad = False
-    return model
 
 def effnet(pretrained=True):
     """Constructs a MyEfficientNet model.
     """
 
-    # 1. load a modified EfficientNet B3
+    # 1. load a modified EfficientNet B7
     if pretrained:
-        efficientnet=EfficientNet.from_pretrained('efficientnet-b7')
+        model=EfficientNet.from_pretrained('efficientnet-b7')
     else:
-        efficientnet=EfficientNet.fom_name('efficientnet-b7')
+        model=EfficientNet.fom_name('efficientnet-b7')
 
-    efficientnet._blocks=nn.Sequential(*list(efficientnet._blocks.children())[:-37])
-    efficientnet._conv_head=nn.Identity()
-    efficientnet._bn1=nn.Identity()
-    
-    # 2. freeze EfficientNet
-    efficientnet=freeze_model(efficientnet)
+    # conv2d (same padding)
+    Conv2dSame = utils.get_same_padding_conv2d()
 
-    # 3. Construct My model with B3
-    model=MyEfficientNet2(efficientnet)
+    # config efficientnet b7
+    for ct, child in enumerate(model.children()):
+        if type(child) == nn.modules.container.ModuleList:
+            for gct, gchild in enumerate(child.children()):
+                if gct==4:
+                    gchild._depthwise_conv=Conv2dSame(in_channels=192, out_channels=192, kernel_size=1, dilation=2, bias=False)
+                elif gct==11:
+                    gchild._depthwise_conv=Conv2dSame(in_channels=288, out_channels=288, kernel_size=1, dilation=2, bias=False)
+    model._conv_head=Conv2dSame(in_channels=640, out_channels=1024, kernel_size=1, bias=False)
+    model._bn1=nn.BatchNorm2d(1024, eps=0.001, momentum=0.010000000000000009, affine=True, track_running_stats=True)
+
+    # 2. Construct My model with B7
+    model=MyEfficientNet(model)
 
     return model
