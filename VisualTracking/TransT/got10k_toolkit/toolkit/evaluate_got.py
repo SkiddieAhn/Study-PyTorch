@@ -1,7 +1,7 @@
 from got10k_toolkit.toolkit.experiments import ExperimentGOT10k
 
 #Specify the path
-dataset_root= '/media/ahnsunghyun/HDD/dataset/GOT-10k-mini/' #Absolute path of the datasets
+dataset_root= '/media/ahnsunghyun/HDD/dataset/GOT-10k/' #Absolute path of the datasets
 
 #Evaluation
 experiment = ExperimentGOT10k(
@@ -10,4 +10,4 @@ experiment = ExperimentGOT10k(
     result_dir='results',  # where to store tracking results
     report_dir='reports'  # where to store evaluation reports
 )
-experiment.report(['transt_eff'])
+experiment.report(['transt_convnext_500'])

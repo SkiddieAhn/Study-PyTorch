@@ -70,7 +70,7 @@ def run(settings):
 
     # Create network and actor
     #model = transt_models.transt_resnet50(settings)
-    model = transt_models.transt_effnet(settings)
+    model = transt_models.transt_resnet_plus(settings)
     print('=========================================')
     print("model load ok!!")
     print('=========================================')

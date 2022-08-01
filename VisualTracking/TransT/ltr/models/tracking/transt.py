@@ -3,6 +3,7 @@ from ltr import model_constructor
 
 import torch
 import torch.nn.functional as F
+from torch.autograd import Variable
 from util import box_ops
 from util.misc import (NestedTensor, nested_tensor_from_tensor,
                        nested_tensor_from_tensor_2,
@@ -106,11 +107,11 @@ class SetCriterion(nn.Module):
         self.num_classes = num_classes
         self.matcher = matcher
         self.weight_dict = weight_dict
-        self.eos_coef = eos_coef
+        # self.eos_coef = eos_coef
         self.losses = losses
-        empty_weight = torch.ones(self.num_classes + 1)
-        empty_weight[-1] = self.eos_coef
-        self.register_buffer('empty_weight', empty_weight)
+        # empty_weight = torch.ones(self.num_classes + 1)
+        # # empty_weight[-1] = self.eos_coef
+        # self.register_buffer('empty_weight', empty_weight)
         
 
     def loss_labels(self, outputs, targets, indices, num_boxes, log=True):
@@ -126,7 +127,13 @@ class SetCriterion(nn.Module):
                                     dtype=torch.int64, device=src_logits.device)
         target_classes[idx] = target_classes_o
 
-        loss_ce = F.cross_entropy(src_logits.transpose(1, 2), target_classes, self.empty_weight)
+        # focal loss
+        # self.alpha=0.25
+        # self.gamma=2
+        loss_ce = F.cross_entropy(src_logits.transpose(1, 2), target_classes)
+        # pt = torch.exp(-loss_ce)
+        # F_loss = self.alpha * (1-pt)**self.gamma * loss_ce
+        # F_loss=torch.mean(F_loss)
         losses = {'loss_ce': loss_ce}
 
         if log:
@@ -236,7 +243,7 @@ def transt_resnet50(settings):
 
 
 @model_constructor
-def transt_effnet(settings):
+def transt_resnet_plus(settings):
     num_classes = 1
     backbone_net = build_backbone(settings, backbone_pretrained=True)
     featurefusion_network = build_featurefusion_network(settings)

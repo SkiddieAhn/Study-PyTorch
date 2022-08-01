@@ -104,11 +104,9 @@ class Backbone(BackboneBase):
 
 
 class MyBackbone(MyBackboneBase):
-    """EfficientNet Backbone"""
     def __init__(self, pretrained):
-        backbone = backbones.effnet(pretrained)
-        #backbone=backbones.myresnet(pretrained)
-        num_channels = 1024
+        backbone=backbones.convnext(pretrained)
+        num_channels = 384
         super().__init__(backbone, num_channels)
 
 

@@ -71,7 +71,7 @@ class BaseTrainer:
 
                     if self.lr_scheduler is not None:
                         self.lr_scheduler.step()
-
+                    
                     if self._checkpoint_dir:
                         self.save_checkpoint()
             except:
