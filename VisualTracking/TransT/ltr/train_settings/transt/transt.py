@@ -12,7 +12,7 @@ def run(settings):
     # Most common settings are assigned in the settings struct
     settings.device = 'cuda'
     settings.description = 'TransT with default settings.'
-    settings.batch_size = 1
+    settings.batch_size = 38
     settings.num_workers = 4
     settings.multi_gpu = True
     settings.print_interval = 1
@@ -36,7 +36,7 @@ def run(settings):
     settings.featurefusion_layers = 4
 
     # Train datasets
-    got10k_train = Got10k(settings.env.got10k_dir, split='vottrain-mini')
+    got10k_train = Got10k(settings.env.got10k_dir, split='vottrain')
 
     # The joint augmentation transform, that is applied to the pairs jointly
     transform_joint = tfm.Transform(tfm.ToGrayscale(probability=0.05))
@@ -57,7 +57,7 @@ def run(settings):
                                                       joint_transform=transform_joint)
 
     # The sampler for training
-    dataset_train = sampler.TransTSampler([got10k_train], None,
+    dataset_train = sampler.TransTSampler([got10k_train], [1],
                                 samples_per_epoch=1000*settings.batch_size, max_gap=100, processing=data_processing_train)
 
     # The loader for training
@@ -71,6 +71,7 @@ def run(settings):
     # Create network and actor
     #model = transt_models.transt_resnet50(settings)
     model = transt_models.transt_resnet_plus(settings)
+    print(model.parameters)
     print('=========================================')
     print("model load ok!!")
     print('=========================================')
@@ -90,14 +91,15 @@ def run(settings):
         {"params": [p for n, p in model.named_parameters() if "backbone" not in n and p.requires_grad]},
         {
             "params": [p for n, p in model.named_parameters() if "backbone" in n and p.requires_grad],
-            "lr": 1e-5,
+            "lr": (1e-5)*2,
         },
     ]
 
-    optimizer = torch.optim.AdamW(param_dicts, lr=1e-4,
+    # TransT-GOT -> lr x 2
+    optimizer = torch.optim.AdamW(param_dicts, lr=(1e-4)*2,
                                   weight_decay=1e-4)
 
-    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 500)
+    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 250)
 
     # Create trainer
     trainer = LTRTrainer(actor, [loader_train], optimizer, settings, lr_scheduler)
@@ -106,4 +108,6 @@ def run(settings):
     print('=========================================')
     print("Training Start!!")
     print('=========================================')
-    trainer.train(50, load_latest=True, fail_safe=True)
+    
+    # TransT-GOT -> epoch:500
+    trainer.train(500, load_latest=True, fail_safe=True)

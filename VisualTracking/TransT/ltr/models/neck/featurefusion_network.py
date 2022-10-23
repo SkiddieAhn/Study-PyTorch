@@ -26,6 +26,8 @@ class FeatureFusionNetwork(nn.Module):
         decoderCFA_layer = DecoderCFALayer(d_model, nhead, dim_feedforward, dropout, activation)
         decoderCFA_norm = nn.LayerNorm(d_model)
         self.decoder = Decoder(decoderCFA_layer, decoderCFA_norm)
+        
+        # self.myattention = PredictionHeadAttention(d_model, nhead, dropout)
 
         self._reset_parameters()
 
@@ -38,23 +40,83 @@ class FeatureFusionNetwork(nn.Module):
                 nn.init.xavier_uniform_(p)
 
     def forward(self, src_temp, mask_temp, src_search, mask_search, pos_temp, pos_search):
+        # print('==================================')
+        # print('fusion network original input (template-search)')
+        # print(src_temp.size(),src_search.size())
+        
         src_temp = src_temp.flatten(2).permute(2, 0, 1)
         pos_temp = pos_temp.flatten(2).permute(2, 0, 1)
         src_search = src_search.flatten(2).permute(2, 0, 1)
         pos_search = pos_search.flatten(2).permute(2, 0, 1)
         mask_temp = mask_temp.flatten(1)
         mask_search = mask_search.flatten(1)
+        
+        # print('==================================')
+        # print('fusion network input (template-search)')
+        # print(src_temp.size(),src_search.size())
 
         memory_temp, memory_search = self.encoder(src1=src_temp, src2=src_search,
                                                   src1_key_padding_mask=mask_temp,
                                                   src2_key_padding_mask=mask_search,
                                                   pos_src1=pos_temp,
                                                   pos_src2=pos_search)
+        
+        # print('==================================')
+        # print('fusion network layerx4 output (template-search)')
+        # print(memory_temp.size(),memory_search.size())
+        
         hs = self.decoder(memory_search, memory_temp,
                           tgt_key_padding_mask=mask_search,
                           memory_key_padding_mask=mask_temp,
                           pos_enc=pos_temp, pos_dec=pos_search)
+        
+        # print('==================================')
+        # print('fusion network final CFA output (search)')
+        # print(hs.size())
+        
+        # out = self.myattention(hs,tgt_key_padding_mask=mask_search, pos_tgt=pos_search)
+
+        # print('==================================')
+        # print('attention for prediction head output (search)')
+        # print(out.size())
+        # print('-> unsqueeze and transpose')
+        # print(out.unsqueeze(0).transpose(1, 2).size())
+        
         return hs.unsqueeze(0).transpose(1, 2)
+    
+    
+# 내가 제작한 self attention module (ECA와 동일, Prediction Head에서 Regression을 더 잘하기 위한 Self-Attention 모듈)
+# 사용하지 않음
+# class PredictionHeadAttention(nn.Module):
+    
+#         def __init__(self, d_model, nhead, dropout=0.1):
+#             super().__init__()
+#             self.self_attn = nn.MultiheadAttention(d_model, nhead, dropout=dropout)
+#             self.dropout = nn.Dropout(dropout)
+#             self.norm = nn.LayerNorm(d_model)
+
+#         def with_pos_embed(self, tensor, pos: Optional[Tensor]):
+#             return tensor if pos is None else tensor + pos
+        
+#         def forward_post(self, tgt,
+#                         tgt_mask: Optional[Tensor] = None,
+#                         tgt_key_padding_mask: Optional[Tensor] = None,
+#                         pos_tgt: Optional[Tensor] = None):
+        
+#             q = k = self.with_pos_embed(tgt, pos_tgt)
+#             tgt12 = self.self_attn(q, k, value=tgt, attn_mask=tgt_mask,
+#                                 key_padding_mask=tgt_key_padding_mask)[0]
+#             tgt = tgt + self.dropout(tgt12)
+#             tgt = self.norm(tgt)
+#             return tgt
+        
+#         def forward(self, tgt,
+#                     tgt_mask: Optional[Tensor] = None,
+#                     tgt_key_padding_mask: Optional[Tensor] = None,
+#                     pos_tgt: Optional[Tensor] = None):
+            
+#             return self.forward_post(tgt, tgt_mask,
+#                             tgt_key_padding_mask, pos_tgt)
 
 
 class Decoder(nn.Module):
@@ -164,13 +226,15 @@ class DecoderCFALayer(nn.Module):
 
         return self.forward_post(tgt, memory, tgt_mask, memory_mask,
                                  tgt_key_padding_mask, memory_key_padding_mask, pos_enc, pos_dec)
+    
+            
 
 class FeatureFusionLayer(nn.Module):
 
     def __init__(self, d_model, nhead, dim_feedforward=2048, dropout=0.1,
                  activation="relu"):
         super().__init__()
-        self.self_attn1 = nn.MultiheadAttention(d_model, nhead, dropout=dropout)
+        self.self_attn1 = nn.MultiheadAttention(d_model, nhead, dropout=dropout) 
         self.self_attn2 = nn.MultiheadAttention(d_model, nhead, dropout=dropout)
         self.multihead_attn1 = nn.MultiheadAttention(d_model, nhead, dropout=dropout)
         self.multihead_attn2 = nn.MultiheadAttention(d_model, nhead, dropout=dropout)
@@ -183,7 +247,7 @@ class FeatureFusionLayer(nn.Module):
         self.dropout2 = nn.Dropout(dropout)
         self.linear22 = nn.Linear(dim_feedforward, d_model)
 
-        self.norm11 = nn.LayerNorm(d_model)
+        self.norm11 = nn.LayerNorm(d_model) 
         self.norm12 = nn.LayerNorm(d_model)
         self.norm13 = nn.LayerNorm(d_model)
         self.norm21 = nn.LayerNorm(d_model)

@@ -3,15 +3,29 @@ from ltr import model_constructor
 
 import torch
 import torch.nn.functional as F
-from torch.autograd import Variable
 from util import box_ops
 from util.misc import (NestedTensor, nested_tensor_from_tensor,
                        nested_tensor_from_tensor_2,
                        accuracy)
 
-from ltr.models.backbone.transt_backbone import build_backbone
+from ltr.models.backbone.transt_backbone import build_backbone, my_build_backbone
 from ltr.models.loss.matcher import build_matcher
 from ltr.models.neck.featurefusion_network import build_featurefusion_network
+from ltr.models.backbone.cbam import *
+
+# class FocalLoss(nn.modules.loss._WeightedLoss):
+#     def __init__(self, weight=None, alpha=.25, gamma=2,reduction='mean'):
+#         super(FocalLoss, self).__init__(weight,reduction=reduction)
+#         self.gamma = gamma
+#         self.weight = weight 
+#         self.alpha = torch.tensor([alpha, 1-alpha]).cuda()
+            
+#     def forward(self, input, target):
+#         ce_loss = F.cross_entropy(input, target,reduction=self.reduction,weight=self.weight) 
+#         at = self.alpha.gather(0, target.data.view(-1))
+#         pt = torch.exp(-ce_loss)
+#         focal_loss = (at * (1 - pt) ** self.gamma * ce_loss).mean()
+#         return focal_loss
 
 
 class TransT(nn.Module):
@@ -27,8 +41,8 @@ class TransT(nn.Module):
         super().__init__()
         self.featurefusion_network = featurefusion_network
         hidden_dim = featurefusion_network.d_model
-        self.class_embed = MLP(hidden_dim, hidden_dim, num_classes + 1, 3)
-        self.bbox_embed = MLP(hidden_dim, hidden_dim, 4, 3)
+        self.class_embed = Attention_and_MLP(hidden_dim, hidden_dim, num_classes + 1, 3)
+        self.bbox_embed = Attention_and_MLP(hidden_dim, hidden_dim, 4, 3)
         self.input_proj = nn.Conv2d(backbone.num_channels, hidden_dim, kernel_size=1)
         self.backbone = backbone
 
@@ -107,11 +121,11 @@ class SetCriterion(nn.Module):
         self.num_classes = num_classes
         self.matcher = matcher
         self.weight_dict = weight_dict
-        # self.eos_coef = eos_coef
+        self.eos_coef = eos_coef
         self.losses = losses
-        # empty_weight = torch.ones(self.num_classes + 1)
-        # # empty_weight[-1] = self.eos_coef
-        # self.register_buffer('empty_weight', empty_weight)
+        empty_weight = torch.ones(self.num_classes + 1)
+        empty_weight[-1] = self.eos_coef
+        self.register_buffer('empty_weight', empty_weight)
         
 
     def loss_labels(self, outputs, targets, indices, num_boxes, log=True):
@@ -127,15 +141,24 @@ class SetCriterion(nn.Module):
                                     dtype=torch.int64, device=src_logits.device)
         target_classes[idx] = target_classes_o
 
-        # focal loss
+        # focal loss (I don't use eoc_coef because focal loss can replace weighted ce loss!)
         # self.alpha=0.25
         # self.gamma=2
-        loss_ce = F.cross_entropy(src_logits.transpose(1, 2), target_classes)
+        # loss_ce = F.cross_entropy(src_logits.transpose(1, 2), target_classes)
         # pt = torch.exp(-loss_ce)
         # F_loss = self.alpha * (1-pt)**self.gamma * loss_ce
         # F_loss=torch.mean(F_loss)
+        # losses = {'loss_ce': F_loss}
+        
+                
+        # focal loss 
+        # F_loss=FocalLoss()
+        # ouput=F_loss(src_logits.transpose(1, 2), target_classes)
+        # losses = {'loss_ce': ouput}
+        
+        loss_ce = F.cross_entropy(src_logits.transpose(1, 2), target_classes, self.empty_weight)
         losses = {'loss_ce': loss_ce}
-
+        
         if log:
             # TODO this should probably be a separate loss, not hacked in this one here
             losses['class_error'] = 100 - accuracy(src_logits[idx], target_classes_o)[0]
@@ -212,16 +235,18 @@ class SetCriterion(nn.Module):
 
         return losses
 
-class MLP(nn.Module):
+class Attention_and_MLP(nn.Module):
     """ Very simple multi-layer perceptron (also called FFN)"""
 
     def __init__(self, input_dim, hidden_dim, output_dim, num_layers):
         super().__init__()
+        self.attention=SpatialGate()
         self.num_layers = num_layers
         h = [hidden_dim] * (num_layers - 1)
         self.layers = nn.ModuleList(nn.Linear(n, k) for n, k in zip([input_dim] + h, h + [output_dim]))
-
+        
     def forward(self, x):
+        x=self.attention(x)
         for i, layer in enumerate(self.layers):
             x = F.relu(layer(x)) if i < self.num_layers - 1 else layer(x)
         return x
@@ -245,7 +270,7 @@ def transt_resnet50(settings):
 @model_constructor
 def transt_resnet_plus(settings):
     num_classes = 1
-    backbone_net = build_backbone(settings, backbone_pretrained=True)
+    backbone_net = my_build_backbone(settings, backbone_pretrained=True)
     featurefusion_network = build_featurefusion_network(settings)
     model = TransT(
         backbone_net,

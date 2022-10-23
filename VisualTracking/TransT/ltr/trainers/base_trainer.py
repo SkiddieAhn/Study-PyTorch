@@ -3,6 +3,30 @@ import glob
 import torch
 import traceback
 from ltr.admin import loading, multigpu
+import subprocess
+import json
+import pprint
+
+DEFAULT_ATTRIBUTES = (
+    'index',
+    'uuid',
+    'name',
+    'timestamp',
+    'memory.total',
+    'memory.free',
+    'memory.used',
+    'utilization.gpu',
+    'utilization.memory'
+)
+
+def get_gpu_info(nvidia_smi_path='nvidia-smi', keys=DEFAULT_ATTRIBUTES, no_units=True):
+    nu_opt = '' if not no_units else ',nounits'
+    cmd = '%s --query-gpu=%s --format=csv,noheader%s' % (nvidia_smi_path, ','.join(keys), nu_opt)
+    output = subprocess.check_output(cmd, shell=True)
+    lines = output.decode().split('\n')
+    lines = [ line.strip() for line in lines if line.strip() != '' ]
+
+    return [ { k: v for k, v in zip(keys, line.split(', ')) } for line in lines ]
 
 
 class BaseTrainer:
@@ -58,7 +82,7 @@ class BaseTrainer:
         """
 
         epoch = -1
-        num_tries = 10
+        num_tries = 2
         for i in range(num_tries):
             try:
                 if load_latest:
@@ -66,14 +90,15 @@ class BaseTrainer:
                 
                 for epoch in range(self.epoch+1, max_epochs+1):
                     self.epoch = epoch
-
+                    pprint.pprint(get_gpu_info())
                     self.train_epoch()
 
                     if self.lr_scheduler is not None:
                         self.lr_scheduler.step()
                     
-                    if self._checkpoint_dir:
-                        self.save_checkpoint()
+                    if epoch % 50==0:
+                        if self._checkpoint_dir:
+                            self.save_checkpoint()
             except:
                 print('Training crashed at epoch {}'.format(epoch))
                 if fail_safe:

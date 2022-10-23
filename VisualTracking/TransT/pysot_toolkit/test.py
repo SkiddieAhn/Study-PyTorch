@@ -38,8 +38,8 @@ torch.set_num_threads(1)
 
 def main():
     # load config
-    dataset_root = '/media/ahnsunghyun/HDD/dataset/GOT-10k-mini/test' #Absolute path of the dataset
-    net_path = '/home/ahnsunghyun/pytorch/VisualTracking/TransT/checkpoints/checkpoints/ltr/transt/transt' #Absolute path of the model
+    dataset_root = '/home/seinkwon/ahnsunghyun/dataset/GOT-10k/test/' #Absolute path of the dataset
+    net_path = '/home/seinkwon/ahnsunghyun/TransT2/checkpoints/checkpoints/ltr/transt/transt' #Absolute path of the model
 
     # create model
     net = NetWithBackbone(net_path=net_path, use_gpu=True)

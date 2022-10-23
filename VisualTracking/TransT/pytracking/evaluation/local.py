@@ -10,12 +10,12 @@ def local_env_settings():
     settings.got_packed_results_path = ''
     settings.got_reports_path = ''
     settings.lasot_path = ''
-    settings.network_path = '/home/ahnsunghyun/pytorch/VisualTracking/TransT/pytracking/networks/transt.pth'    # Where tracking networks are stored.
+    settings.network_path = '/home/seinkwon/ahnsunghyun/TransT/pytracking/networks/'    # Where tracking networks are stored.
     settings.nfs_path = ''
     settings.otb_path = ''
-    settings.result_plot_path = '/home/ahnsunghyun/pytorch/VisualTracking/TransT/pytracking/result_plots/'
-    settings.results_path = '/home/ahnsunghyun/pytorch/VisualTracking/TransT/pytracking/tracking_results/'    # Where to store tracking results
-    settings.segmentation_path = '/home/ahnsunghyun/pytorch/VisualTracking/TransT/pytracking/segmentation_results/'
+    settings.result_plot_path = '/home/seinkwon/ahnsunghyun/TransT/pytracking/result_plots/'
+    settings.results_path = '/home/seinkwon/ahnsunghyun/TransT/pytracking/tracking_results/'    # Where to store tracking results
+    settings.segmentation_path = '/home/seinkwon/ahnsunghyun/TransT/pytracking/segmentation_results/'
     settings.tn_packed_results_path = ''
     settings.tpl_path = ''
     settings.trackingnet_path = ''

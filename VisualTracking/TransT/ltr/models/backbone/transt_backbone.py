@@ -72,7 +72,7 @@ class BackboneBase(nn.Module):
         return out
 
 class MyBackboneBase(nn.Module):
-    """EfficientNet BackboneBase"""
+    """ResNet Plus BackboneBase"""
     def __init__(self, backbone: nn.Module, num_channels: int):
         super().__init__()
         self.body = backbone
@@ -80,7 +80,7 @@ class MyBackboneBase(nn.Module):
 
     def forward(self, tensor_list: NestedTensor):
         x = self.body(tensor_list.tensors)
-        name='myeffnet'
+        name='myresnet'
         # make out object
         out: Dict[str, NestedTensor] = {}
         m = tensor_list.mask
@@ -104,9 +104,10 @@ class Backbone(BackboneBase):
 
 
 class MyBackbone(MyBackboneBase):
+    """ResNet Plus Backbone"""
     def __init__(self, pretrained):
-        backbone=backbones.convnext(pretrained)
-        num_channels = 384
+        backbone = backbones.myresnet(pretrained)
+        num_channels = 1024
         super().__init__(backbone, num_channels)
 
 
@@ -124,11 +125,18 @@ class Joiner(nn.Sequential):
             pos.append(self[1](x).to(x.tensors.dtype))
 
         return out, pos
-
+    
 
 def build_backbone(settings, backbone_pretrained=True, frozen_backbone_layers=()):
     position_embedding = build_position_encoding(settings)
-    #backbone = Backbone(output_layers=['layer3'], pretrained=backbone_pretrained, frozen_layers=frozen_backbone_layers)
+    backbone = Backbone(output_layers=['layer3'], pretrained=backbone_pretrained, frozen_layers=frozen_backbone_layers)
+    model = Joiner(backbone, position_embedding)
+    model.num_channels = backbone.num_channels
+    return model
+
+
+def my_build_backbone(settings, backbone_pretrained=True, frozen_backbone_layers=()):
+    position_embedding = build_position_encoding(settings)
     backbone = MyBackbone(pretrained=backbone_pretrained)
     model = Joiner(backbone, position_embedding)
     model.num_channels = backbone.num_channels
