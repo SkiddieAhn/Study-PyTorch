@@ -1,0 +1,72 @@
+ucsd ped1 사용함
+
+데이터 셋 만들 때는 아래와 같은 python rename 코드를 작성해서 제작함
+
+1. rename.py (ped1 모든 디렉토리 이용해서 학습 데이터 구축)
+
+import os
+
+
+# Train001~Train34 디렉토리 내부 파일들 이름 바꾸고 위치 이동
+# ex) Train001에는 001.tif부터 200.tif까지 있고, Train002에는 001.tif부터 200.tif까지 있음 ->
+# normal_tst_img_001.tif부터 normal_tst_img_400.tif로 이름 바꾸고 위치 이동
+def sortAndRename(directory):
+    count=0
+    for i in range(1, 35):
+        file_list = []
+
+        if i < 10:
+            inner_dir = directory + '/Train00' + str(i)
+        else:
+            inner_dir = directory + '/Train0' + str(i)
+
+        for f in os.listdir(inner_dir):
+            if '.tif' in f:
+                file_list.append(f[:-4])
+        file_list.sort()
+
+        temp=count
+        for idx,cc in enumerate(range(temp,temp+len(file_list))):
+            keyword = 'normal_tst_img_'
+            src_file = inner_dir + '/' + '{}.tif'.format(file_list[idx])
+            output = directory + '/' + keyword + str(cc)+'.tif'
+            print('{} --> {}'.format(src_file, output))
+            os.rename(src_file, output)
+            count=cc+1
+        print(inner_dir, ') ok!')
+
+
+directory = './Train'
+sortAndRename(directory)
+
+
+2. rename2.py (ped1_24로 테스트 데이터 구축)
+
+import os
+
+def sortAndRename(directory):
+    file_list=[]
+    for f in os.listdir(directory):
+        if '.tif' in f:
+            file_list.append(f[:-4])
+    file_list.sort()
+
+    count=count2=0
+    for idx in range(len(file_list)):
+        if 50<=idx+1<=169:
+            count+=1
+            keyword = 'abnormal_tst_img_'
+            src_file = directory + '/' + '{}.tif'.format(file_list[idx])
+            output = directory + '/' + keyword + str(count)+'.tif'
+        else:
+            count2+=1
+            keyword = 'normal_tst_img_'
+            src_file = directory + '/' + '{}.tif'.format(file_list[idx])
+            output = directory + '/' + keyword + str(count2)+'.tif'
+        print('{} --> {}'.format(src_file, output))
+        os.rename(src_file, output)
+
+directory = './Test/Test024'
+sortAndRename(directory)
+
+

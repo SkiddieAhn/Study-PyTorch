@@ -1,0 +1,186 @@
+================ Training Loss (Sun Nov 13 13:50:38 2022) ================
+   Avg Run Time (ms/batch): 3.356 roc: 0.768 max roc: 0.768
+================ Training Loss (Sun Nov 13 13:54:36 2022) ================
+================ Training Loss (Sun Nov 13 13:54:49 2022) ================
+================ Training Loss (Sun Nov 13 13:56:11 2022) ================
+================ Training Loss (Sun Nov 13 13:56:33 2022) ================
+================ Training Loss (Sun Nov 13 13:56:57 2022) ================
+================ Training Loss (Sun Nov 13 14:03:40 2022) ================
+   Avg Run Time (ms/batch): 4.537 roc: 0.946 max roc: 0.946
+   Avg Run Time (ms/batch): 4.213 roc: 0.970 max roc: 0.970
+   Avg Run Time (ms/batch): 4.593 roc: 0.900 max roc: 0.970
+   Avg Run Time (ms/batch): 4.425 roc: 0.913 max roc: 0.970
+   Avg Run Time (ms/batch): 4.460 roc: 0.709 max roc: 0.970
+   Avg Run Time (ms/batch): 4.694 roc: 0.877 max roc: 0.970
+   Avg Run Time (ms/batch): 5.017 roc: 0.709 max roc: 0.970
+   Avg Run Time (ms/batch): 4.648 roc: 0.647 max roc: 0.970
+   Avg Run Time (ms/batch): 4.453 roc: 0.747 max roc: 0.970
+   Avg Run Time (ms/batch): 4.426 roc: 0.982 max roc: 0.982
+================ Training Loss (Sun Nov 13 14:09:34 2022) ================
+   Avg Run Time (ms/batch): 4.114 roc: 0.320 max roc: 0.320
+   Avg Run Time (ms/batch): 4.629 roc: 0.778 max roc: 0.778
+   Avg Run Time (ms/batch): 4.800 roc: 0.777 max roc: 0.778
+   Avg Run Time (ms/batch): 4.914 roc: 0.956 max roc: 0.956
+   Avg Run Time (ms/batch): 4.415 roc: 0.888 max roc: 0.956
+   Avg Run Time (ms/batch): 4.700 roc: 0.749 max roc: 0.956
+   Avg Run Time (ms/batch): 4.320 roc: 0.696 max roc: 0.956
+   Avg Run Time (ms/batch): 4.838 roc: 0.897 max roc: 0.956
+   Avg Run Time (ms/batch): 4.588 roc: 0.531 max roc: 0.956
+   Avg Run Time (ms/batch): 4.800 roc: 0.874 max roc: 0.956
+   Avg Run Time (ms/batch): 4.728 roc: 0.885 max roc: 0.956
+   Avg Run Time (ms/batch): 4.483 roc: 0.847 max roc: 0.956
+   Avg Run Time (ms/batch): 4.575 roc: 0.850 max roc: 0.956
+   Avg Run Time (ms/batch): 4.586 roc: 0.621 max roc: 0.956
+   Avg Run Time (ms/batch): 4.624 roc: 0.837 max roc: 0.956
+   Avg Run Time (ms/batch): 4.847 roc: 0.866 max roc: 0.956
+   Avg Run Time (ms/batch): 4.401 roc: 0.825 max roc: 0.956
+   Avg Run Time (ms/batch): 4.168 roc: 0.909 max roc: 0.956
+   Avg Run Time (ms/batch): 4.722 roc: 0.820 max roc: 0.956
+   Avg Run Time (ms/batch): 4.880 roc: 0.821 max roc: 0.956
+   Avg Run Time (ms/batch): 6.110 roc: 0.880 max roc: 0.956
+   Avg Run Time (ms/batch): 4.569 roc: 0.947 max roc: 0.956
+   Avg Run Time (ms/batch): 4.459 roc: 0.899 max roc: 0.956
+   Avg Run Time (ms/batch): 4.377 roc: 0.915 max roc: 0.956
+   Avg Run Time (ms/batch): 4.544 roc: 0.927 max roc: 0.956
+   Avg Run Time (ms/batch): 4.210 roc: 0.903 max roc: 0.956
+   Avg Run Time (ms/batch): 4.802 roc: 0.917 max roc: 0.956
+   Avg Run Time (ms/batch): 4.971 roc: 0.929 max roc: 0.956
+   Avg Run Time (ms/batch): 4.609 roc: 0.934 max roc: 0.956
+   Avg Run Time (ms/batch): 4.500 roc: 0.922 max roc: 0.956
+   Avg Run Time (ms/batch): 4.777 roc: 0.937 max roc: 0.956
+   Avg Run Time (ms/batch): 4.703 roc: 0.927 max roc: 0.956
+   Avg Run Time (ms/batch): 4.916 roc: 0.916 max roc: 0.956
+   Avg Run Time (ms/batch): 4.687 roc: 0.915 max roc: 0.956
+   Avg Run Time (ms/batch): 5.077 roc: 0.917 max roc: 0.956
+   Avg Run Time (ms/batch): 4.537 roc: 0.938 max roc: 0.956
+   Avg Run Time (ms/batch): 4.613 roc: 0.934 max roc: 0.956
+   Avg Run Time (ms/batch): 4.661 roc: 0.935 max roc: 0.956
+   Avg Run Time (ms/batch): 4.775 roc: 0.933 max roc: 0.956
+   Avg Run Time (ms/batch): 4.808 roc: 0.920 max roc: 0.956
+   Avg Run Time (ms/batch): 4.542 roc: 0.905 max roc: 0.956
+   Avg Run Time (ms/batch): 4.530 roc: 0.936 max roc: 0.956
+   Avg Run Time (ms/batch): 4.772 roc: 0.942 max roc: 0.956
+   Avg Run Time (ms/batch): 4.876 roc: 0.929 max roc: 0.956
+   Avg Run Time (ms/batch): 4.411 roc: 0.895 max roc: 0.956
+   Avg Run Time (ms/batch): 4.572 roc: 0.902 max roc: 0.956
+   Avg Run Time (ms/batch): 6.283 roc: 0.927 max roc: 0.956
+   Avg Run Time (ms/batch): 4.348 roc: 0.931 max roc: 0.956
+   Avg Run Time (ms/batch): 4.727 roc: 0.891 max roc: 0.956
+   Avg Run Time (ms/batch): 4.493 roc: 0.919 max roc: 0.956
+   Avg Run Time (ms/batch): 4.953 roc: 0.929 max roc: 0.956
+   Avg Run Time (ms/batch): 4.513 roc: 0.933 max roc: 0.956
+   Avg Run Time (ms/batch): 4.852 roc: 0.925 max roc: 0.956
+   Avg Run Time (ms/batch): 4.836 roc: 0.921 max roc: 0.956
+   Avg Run Time (ms/batch): 4.712 roc: 0.940 max roc: 0.956
+   Avg Run Time (ms/batch): 4.660 roc: 0.931 max roc: 0.956
+   Avg Run Time (ms/batch): 4.804 roc: 0.879 max roc: 0.956
+   Avg Run Time (ms/batch): 4.796 roc: 0.932 max roc: 0.956
+   Avg Run Time (ms/batch): 4.922 roc: 0.914 max roc: 0.956
+   Avg Run Time (ms/batch): 4.430 roc: 0.929 max roc: 0.956
+   Avg Run Time (ms/batch): 4.313 roc: 0.927 max roc: 0.956
+   Avg Run Time (ms/batch): 4.421 roc: 0.906 max roc: 0.956
+   Avg Run Time (ms/batch): 4.432 roc: 0.921 max roc: 0.956
+   Avg Run Time (ms/batch): 4.053 roc: 0.927 max roc: 0.956
+   Avg Run Time (ms/batch): 4.456 roc: 0.899 max roc: 0.956
+   Avg Run Time (ms/batch): 4.572 roc: 0.925 max roc: 0.956
+   Avg Run Time (ms/batch): 4.501 roc: 0.927 max roc: 0.956
+   Avg Run Time (ms/batch): 4.629 roc: 0.930 max roc: 0.956
+   Avg Run Time (ms/batch): 3.981 roc: 0.939 max roc: 0.956
+   Avg Run Time (ms/batch): 4.449 roc: 0.931 max roc: 0.956
+   Avg Run Time (ms/batch): 4.694 roc: 0.892 max roc: 0.956
+   Avg Run Time (ms/batch): 4.435 roc: 0.944 max roc: 0.956
+   Avg Run Time (ms/batch): 4.683 roc: 0.926 max roc: 0.956
+   Avg Run Time (ms/batch): 4.529 roc: 0.909 max roc: 0.956
+   Avg Run Time (ms/batch): 4.534 roc: 0.875 max roc: 0.956
+   Avg Run Time (ms/batch): 4.426 roc: 0.909 max roc: 0.956
+   Avg Run Time (ms/batch): 4.445 roc: 0.915 max roc: 0.956
+   Avg Run Time (ms/batch): 4.314 roc: 0.913 max roc: 0.956
+   Avg Run Time (ms/batch): 5.135 roc: 0.909 max roc: 0.956
+   Avg Run Time (ms/batch): 4.144 roc: 0.892 max roc: 0.956
+   Avg Run Time (ms/batch): 3.990 roc: 0.915 max roc: 0.956
+   Avg Run Time (ms/batch): 4.265 roc: 0.902 max roc: 0.956
+   Avg Run Time (ms/batch): 4.543 roc: 0.808 max roc: 0.956
+   Avg Run Time (ms/batch): 4.231 roc: 0.916 max roc: 0.956
+   Avg Run Time (ms/batch): 4.203 roc: 0.918 max roc: 0.956
+   Avg Run Time (ms/batch): 4.364 roc: 0.877 max roc: 0.956
+   Avg Run Time (ms/batch): 4.178 roc: 0.901 max roc: 0.956
+   Avg Run Time (ms/batch): 4.484 roc: 0.902 max roc: 0.956
+   Avg Run Time (ms/batch): 4.609 roc: 0.917 max roc: 0.956
+   Avg Run Time (ms/batch): 4.362 roc: 0.895 max roc: 0.956
+   Avg Run Time (ms/batch): 4.582 roc: 0.884 max roc: 0.956
+   Avg Run Time (ms/batch): 4.428 roc: 0.919 max roc: 0.956
+   Avg Run Time (ms/batch): 4.154 roc: 0.872 max roc: 0.956
+   Avg Run Time (ms/batch): 3.951 roc: 0.899 max roc: 0.956
+   Avg Run Time (ms/batch): 4.478 roc: 0.901 max roc: 0.956
+   Avg Run Time (ms/batch): 4.390 roc: 0.898 max roc: 0.956
+   Avg Run Time (ms/batch): 4.483 roc: 0.894 max roc: 0.956
+   Avg Run Time (ms/batch): 4.361 roc: 0.891 max roc: 0.956
+   Avg Run Time (ms/batch): 4.221 roc: 0.891 max roc: 0.956
+   Avg Run Time (ms/batch): 4.431 roc: 0.893 max roc: 0.956
+================ Training Loss (Sun Nov 13 14:44:59 2022) ================
+================ Training Loss (Sun Nov 13 14:45:42 2022) ================
+================ Training Loss (Sun Nov 13 14:46:14 2022) ================
+================ Training Loss (Sun Nov 13 14:46:33 2022) ================
+================ Training Loss (Sun Nov 13 14:47:09 2022) ================
+================ Training Loss (Sun Nov 13 14:47:41 2022) ================
+================ Training Loss (Sun Nov 13 14:49:21 2022) ================
+   Avg Run Time (ms/batch): 70.696 roc: 0.958 max roc: 0.958
+   Avg Run Time (ms/batch): 70.881 roc: 0.961 max roc: 0.961
+   Avg Run Time (ms/batch): 71.341 roc: 0.959 max roc: 0.961
+   Avg Run Time (ms/batch): 70.335 roc: 0.949 max roc: 0.961
+   Avg Run Time (ms/batch): 69.911 roc: 0.956 max roc: 0.961
+================ Training Loss (Sun Nov 13 14:52:33 2022) ================
+================ Training Loss (Sun Nov 13 14:52:46 2022) ================
+================ Training Loss (Sun Nov 13 14:53:21 2022) ================
+================ Training Loss (Sun Nov 13 14:53:43 2022) ================
+================ Training Loss (Sun Nov 13 14:54:14 2022) ================
+================ Training Loss (Sun Nov 13 14:54:45 2022) ================
+================ Training Loss (Sun Nov 13 14:54:59 2022) ================
+   Avg Run Time (ms/batch): 780.089 roc: 0.644 max roc: 0.644
+   Avg Run Time (ms/batch): 795.909 roc: 0.360 max roc: 0.644
+   Avg Run Time (ms/batch): 796.222 roc: 0.476 max roc: 0.644
+   Avg Run Time (ms/batch): 832.009 roc: 0.388 max roc: 0.644
+   Avg Run Time (ms/batch): 850.898 roc: 0.691 max roc: 0.691
+   Avg Run Time (ms/batch): 864.694 roc: 0.476 max roc: 0.691
+   Avg Run Time (ms/batch): 875.691 roc: 0.568 max roc: 0.691
+   Avg Run Time (ms/batch): 856.591 roc: 0.455 max roc: 0.691
+   Avg Run Time (ms/batch): 899.959 roc: 0.351 max roc: 0.691
+   Avg Run Time (ms/batch): 934.416 roc: 0.420 max roc: 0.691
+   Avg Run Time (ms/batch): 912.732 roc: 0.718 max roc: 0.718
+   Avg Run Time (ms/batch): 929.547 roc: 0.567 max roc: 0.718
+   Avg Run Time (ms/batch): 939.261 roc: 0.972 max roc: 0.972
+   Avg Run Time (ms/batch): 945.644 roc: 0.860 max roc: 0.972
+   Avg Run Time (ms/batch): 972.882 roc: 0.181 max roc: 0.972
+   Avg Run Time (ms/batch): 1035.014 roc: 0.584 max roc: 0.972
+   Avg Run Time (ms/batch): 990.431 roc: 0.483 max roc: 0.972
+   Avg Run Time (ms/batch): 978.224 roc: 0.569 max roc: 0.972
+   Avg Run Time (ms/batch): 1005.870 roc: 0.769 max roc: 0.972
+   Avg Run Time (ms/batch): 1033.207 roc: 0.489 max roc: 0.972
+   Avg Run Time (ms/batch): 1019.434 roc: 0.477 max roc: 0.972
+   Avg Run Time (ms/batch): 1027.769 roc: 0.660 max roc: 0.972
+   Avg Run Time (ms/batch): 1026.748 roc: 0.811 max roc: 0.972
+   Avg Run Time (ms/batch): 1050.327 roc: 0.701 max roc: 0.972
+   Avg Run Time (ms/batch): 1044.486 roc: 0.745 max roc: 0.972
+   Avg Run Time (ms/batch): 1039.999 roc: 0.676 max roc: 0.972
+================ Training Loss (Sun Nov 13 15:29:45 2022) ================
+================ Training Loss (Sun Nov 13 15:30:06 2022) ================
+================ Training Loss (Sun Nov 13 15:30:54 2022) ================
+================ Training Loss (Sun Nov 13 16:13:52 2022) ================
+================ Training Loss (Sun Nov 13 16:14:10 2022) ================
+================ Training Loss (Sun Nov 13 16:14:39 2022) ================
+================ Training Loss (Sun Nov 13 16:16:41 2022) ================
+================ Training Loss (Sun Nov 13 16:16:59 2022) ================
+================ Training Loss (Sun Nov 13 17:12:24 2022) ================
+================ Training Loss (Sun Nov 13 17:13:01 2022) ================
+================ Training Loss (Sun Nov 13 17:13:18 2022) ================
+================ Training Loss (Sun Nov 13 17:22:53 2022) ================
+================ Training Loss (Sun Nov 13 17:23:39 2022) ================
+================ Training Loss (Sun Nov 13 17:24:23 2022) ================
+================ Training Loss (Sun Nov 13 17:27:12 2022) ================
+================ Training Loss (Sun Nov 13 17:29:27 2022) ================
+================ Training Loss (Sun Nov 13 17:32:43 2022) ================
+================ Training Loss (Sun Nov 13 17:33:12 2022) ================
+================ Training Loss (Sun Nov 13 17:44:24 2022) ================
+================ Training Loss (Sun Nov 13 17:44:29 2022) ================
+================ Training Loss (Sun Nov 13 19:39:17 2022) ================
+================ Training Loss (Sun Nov 13 20:08:26 2022) ================
