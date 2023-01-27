@@ -200,7 +200,6 @@ class UnetUpBlock(nn.Module):
         out = self.conv_block(out)
         return out
 
-
 class UnetOutBlock(nn.Module):
     def __init__(
         self, spatial_dims: int, in_channels: int, out_channels: int, dropout: Optional[Union[Tuple, str, float]] = None

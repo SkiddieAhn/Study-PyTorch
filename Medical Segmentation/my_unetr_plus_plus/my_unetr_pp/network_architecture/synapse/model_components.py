@@ -11,8 +11,8 @@ from my_unetr_pp.network_architecture.my_module import My_PatchMerging, My_Patch
 einops, _ = optional_import("einops")
 
 class UnetrPPEncoder(nn.Module):
-    def __init__(self, input_size=[64 * 64 * 64, 32 * 32 * 32, 16 * 16 * 16, 8 * 8 * 8, 4 * 4 * 4],dims=[16, 32, 64, 128, 256],
-                 proj_size =[64,64,64,32,32], depths=[3, 3, 3, 3, 3],  num_heads=4, spatial_dims=3, in_channels=1, dropout=0.0, transformer_dropout_rate=0.15 ,**kwargs):
+    def __init__(self, input_size=[32 * 32 * 32, 16 * 16 * 16, 8 * 8 * 8, 4 * 4 * 4],dims=[32, 64, 128, 256],
+                 proj_size =[64,64,64,32], depths=[3, 3, 3, 3],  num_heads=4, spatial_dims=3, in_channels=1, dropout=0.0, transformer_dropout_rate=0.15 ,**kwargs):
         super().__init__()
 
         self.downsample_layers = nn.ModuleList()  # stem and 3 intermediate downsampling conv layers
@@ -22,7 +22,7 @@ class UnetrPPEncoder(nn.Module):
             get_norm_layer(name=("group", {"num_groups": in_channels}), channels=dims[0]),
         )
         self.downsample_layers.append(stem_layer)
-        for i in range(4):
+        for i in range(3):
             downsample_layer = nn.Sequential(
                 # get_conv_layer(spatial_dims, dims[i], dims[i + 1], kernel_size=(2, 2, 2), stride=(2, 2, 2),
                 #                dropout=dropout, conv_only=True, ),
@@ -31,8 +31,8 @@ class UnetrPPEncoder(nn.Module):
             )
             self.downsample_layers.append(downsample_layer)
 
-        self.stages = nn.ModuleList()  # 5 feature resolution stages, each consisting of multiple Transformer blocks
-        for i in range(5):
+        self.stages = nn.ModuleList()  # 4 feature resolution stages, each consisting of multiple Transformer blocks
+        for i in range(4):
             stage_blocks = []
             for j in range(depths[i]):
                 stage_blocks.append(TransformerBlock(input_size=input_size[i], hidden_size=dims[i],  proj_size=proj_size[i], num_heads=num_heads,
@@ -58,10 +58,10 @@ class UnetrPPEncoder(nn.Module):
 
         hidden_states.append(x)
 
-        for i in range(1, 5):
+        for i in range(1, 4):
             x = self.downsample_layers[i](x)
             x = self.stages[i](x)
-            if i == 4:  # Reshape the output of the last stage
+            if i == 3:  # Reshape the output of the last stage
                 x = einops.rearrange(x, "b c h w d -> b (h w d) c")
             hidden_states.append(x)
         return x, hidden_states
@@ -111,19 +111,18 @@ class UnetrUpBlock(nn.Module):
         #     conv_only=True,
         #     is_transposed=True,
         # )
-        if in_channels != out_channels:
-            self.upsampling=My_PatchExpanding(dim=in_channels)
-        else:
-            upsample_stride = upsample_kernel_size
+        if conv_decoder == True:            
             self.upsampling=get_conv_layer(
-            spatial_dims,
-            in_channels,
-            out_channels,
-            kernel_size=upsample_kernel_size,
-            stride=upsample_stride,
-            conv_only=True,
-            is_transposed=True,
-        )
+                spatial_dims,
+                in_channels,
+                out_channels,
+                kernel_size=upsample_kernel_size,
+                stride=upsample_kernel_size,
+                conv_only=True,
+                is_transposed=True,
+            )
+        else:
+            self.upsampling=My_PatchExpanding(dim=in_channels)
 
         # 4 feature resolution stages, each consisting of multiple residual blocks
         self.decoder_block = nn.ModuleList()

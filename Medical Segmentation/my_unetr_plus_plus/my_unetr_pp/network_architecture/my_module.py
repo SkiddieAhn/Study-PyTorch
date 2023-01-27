@@ -27,8 +27,8 @@ class My_PatchMerging(nn.Module):
             x_=x[:, :, :, i:i+2, :] # B, H/2, W/2, 2, C
             
             x_0=x_[:, 0::2, 0::2, :, :] # B, H/2, W/2, 2, C
-            x_1=x_[:, 1::2, 0::2, :, :] # B, H/2, W/2, 2, C
-            x_2=x_[:, 0::2, 1::2, :, :] # B, H/2, W/2, 2, C
+            x_1=x_[:, 0::2, 1::2, :, :] # B, H/2, W/2, 2, C 
+            x_2=x_[:, 1::2, 0::2, :, :]  # B, H/2, W/2, 2, C 
             x_3=x_[:, 1::2, 1::2, :, :] # B, H/2, W/2, 2, C
 
             # width, height information -> channel information
@@ -107,15 +107,11 @@ class My_EPA(nn.Module):
         self.temperature = nn.Parameter(torch.ones(num_heads, 1, 1)) # for channel attention
         self.temperature2 = nn.Parameter(torch.ones(num_heads, 1, 1)) # for spatial attention
 
-        # qkvv are 3 linear layers (query, key, value) -- for channel attention
+        # qkv are 3 linear layers (query, key, value)
         self.qkv = nn.Linear(hidden_size, hidden_size * 3, bias=qkv_bias)
-        # qkvv are 3 linear layers (query, key, value) -- for spatial attention
-        self.qkv2 = nn.Linear(hidden_size, hidden_size * 3, bias=qkv_bias)
 
-        # E and F are projection matrices with shared weights used in channel attention module to project
-        self.E = self.F = nn.Linear(input_size, proj_size)
-        # E2 and F2 are projection matrices with shared weights used in spatial attention module to project
-        self.E2 = self.F2 = nn.Linear(input_size, proj_size)
+        # projection matrices with shared weights used in attention module to project
+        self.proj_q = self.proj_k = self.proj_v = nn.Linear(input_size, proj_size)
 
         self.attn_drop = nn.Dropout(channel_attn_drop) 
         self.attn_drop_2 = nn.Dropout(spatial_attn_drop)
@@ -138,8 +134,8 @@ class My_EPA(nn.Module):
         q_t = torch.nn.functional.normalize(q_t, dim=-1)
         k_t = torch.nn.functional.normalize(k_t, dim=-1)
         
-        q_t_projected = self.E(q_t) # B x h x C/h x p
-        k_t_projected = self.F(k_t) # B x h x C/h x p
+        q_t_projected = self.proj_q(q_t) # B x h x C/h x p
+        k_t_projected = self.proj_k(k_t) # B x h x C/h x p
 
         k_projected = k_t_projected.transpose(-2, -1) # K(p) : B x h x p x C/h
         attn_CA = (q_t_projected @ k_projected) * self.temperature # [Q_T(p) x K(p)] B x h x C/h x C/h 
@@ -156,7 +152,7 @@ class My_EPA(nn.Module):
         Spatial Attention
         : K -> K(p), V -> V(p) [ Q x K_T(p) ]
         '''
-        qkv2 = self.qkv2(x_CA).reshape(B, N, 3, self.num_heads, C // self.num_heads) # B x N x 3 x h x C/h
+        qkv2 = self.qkv(x_CA).reshape(B, N, 3, self.num_heads, C // self.num_heads) # B x N x 3 x h x C/h
         qkv2 = qkv2.permute(2, 0, 3, 1, 4) # 3 x B x h x N x C/h
         q2, k2, v2 = qkv2[0], qkv2[1], qkv2[2] # B x h x N x C/h
 
@@ -164,8 +160,8 @@ class My_EPA(nn.Module):
         k2_t = k2.transpose(-2, -1) # B x h x C/h x N
         v2_t = v2.transpose(-2, -1) # B x h x C/h x N
 
-        k2_t_projected = self.E2(k2_t) # B x h x C/h x p
-        v2_t_projected = self.F2(v2_t) # B x h x C/h x p
+        k2_t_projected = self.proj_k(k2_t) # B x h x C/h x p
+        v2_t_projected = self.proj_v(v2_t) # B x h x C/h x p
 
         q2_t = torch.nn.functional.normalize(q2_t, dim=-1)
         k2_t = torch.nn.functional.normalize(k2_t, dim=-1)
@@ -305,8 +301,8 @@ class My_Cross_Att(nn.Module):
 class My_TIF(nn.Module):
     def __init__(self,HWD_e,HWD_r,proj_size,dim_e,dim_r): 
         super().__init__()
-        # dim_e = local feature map channel 
-        # dim_r = global feature map channel 
+        # dim_e = local feature map channel (16,32,64,128)
+        # dim_r = global feature map channel (32,64,128,256)
         self.cross_attn=My_Cross_Att(HWD_e,HWD_r,proj_size,dim_e,dim_r)
         self.up = nn.Upsample(scale_factor=2)
         self.conv=My_Conv_block(in_ch=dim_e+dim_r, out_ch=dim_e, groups=32)
@@ -316,8 +312,10 @@ class My_TIF(nn.Module):
         e: local feature (H x W x D x C)
         r: global feature (H/2 x W/2 x D/2 x 2C)
         '''
+        skip=e
         e,r=self.cross_attn(e,r) # [B,C,D,H,W], [B,C,D/2,H/2,W/2]
         e = torch.cat([e,self.up(r)],1) # B,2C,D,H,W
         e=self.conv(e) # B,C,D,H,W
+        e=skip+e # skip connection
         
         return e
