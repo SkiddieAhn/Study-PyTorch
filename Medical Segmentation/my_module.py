@@ -5,6 +5,55 @@ from einops import rearrange
 sys.path.append('.')
 
 '''
+NFCE 수정 버전 (depthwise seperable conv를 이용함)
+'''
+class My_NFCE(nn.Module):
+    def __init__(self,in_dim): 
+        super().__init__()
+        mid_dim=in_dim//4
+        self.conv1=nn.Conv3d(in_channels=in_dim, out_channels=mid_dim, kernel_size=1, bias=False) # Conv 1x1x1
+        self.norm1=nn.BatchNorm3d(mid_dim)
+
+        # depthwise seperable convolution
+        self.dsconv=nn.Sequential(
+            nn.Conv3d(in_channels=mid_dim, out_channels=mid_dim, kernel_size=3, padding=1, bias=False, groups=mid_dim), # Depth-wise Conv 3x3x3
+            nn.Conv3d(in_channels=mid_dim, out_channels=mid_dim, kernel_size=1, bias=False) # Point-wise Conv 1x1x1
+        )
+        self.norm2=nn.BatchNorm3d(mid_dim)
+
+        self.conv3=nn.Conv3d(in_channels=mid_dim, out_channels=in_dim, kernel_size=1, bias=False) # Conv 1x1x1
+        self.norm3=nn.BatchNorm3d(in_dim)
+
+        self.relu=nn.ReLU()
+
+    def forward(self,x):
+        '''
+        x: feature (H x W x D x C)
+        ex) 16 x 16 x 16 x 64
+        '''
+        save=x # [B, C, D, H, W]
+        
+        # 1x1x1 conv -> [B, C//4, D, H, W]
+        x=self.conv1(x) 
+        x=self.norm1(x)
+        x=self.relu(x)
+
+        # depthwise seperable conv -> [B, C//4, D, H, W]
+        x=self.dsconv(x) 
+        x=self.norm2(x)
+        x=self.relu(x)
+        
+        # 1x1x1 conv -> [B, C, D, H, W]
+        x=self.conv3(x)
+        x=self.norm3(x)
+        
+        # skip connection -> [B, C, D, H, W]
+        x=x+save 
+        x=self.relu(x)
+        
+        return x
+
+'''
 패치 합치기 (해상도 정보와 차원 정보를 채널 정보로 보냄)
 '''
 class My_PatchMerging(nn.Module):
