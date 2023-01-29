@@ -1,9 +1,9 @@
 from torch import nn
 from typing import Tuple, Union
-from my_unetr_pp.network_architecture.neural_network import SegmentationNetwork
-from my_unetr_pp.network_architecture.dynunet_block import UnetOutBlock, UnetResBlock, get_conv_layer
-from my_unetr_pp.network_architecture.synapse.model_components import UnetrPPEncoder, UnetrUpBlock
-from my_unetr_pp.network_architecture.my_module import My_TIF
+from unetr_pp.network_architecture.neural_network import SegmentationNetwork
+from unetr_pp.network_architecture.dynunet_block import UnetOutBlock, UnetResBlock, get_conv_layer
+from unetr_pp.network_architecture.synapse.model_components import UnetrPPEncoder, UnetrUpBlock
+from unetr_pp.network_architecture.my_module import My_TIF
 
 class UNETR_PP(SegmentationNetwork):
     """

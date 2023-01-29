@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torch
-from my_unetr_pp.network_architecture.dynunet_block import UnetResBlock
-from my_unetr_pp.network_architecture.my_module import My_EPA
+from unetr_pp.network_architecture.dynunet_block import UnetResBlock
+from unetr_pp.network_architecture.my_module import My_EPA
 
 class TransformerBlock(nn.Module):
     """
