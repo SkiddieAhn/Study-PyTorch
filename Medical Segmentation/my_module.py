@@ -4,6 +4,48 @@ from torch import nn, einsum
 from einops import rearrange
 sys.path.append('.')
 
+
+'''
+Fusion 모듈 (3D TIF 대신 시도 예정)
+'''
+class My_Fusion(nn.Module):
+    def __init__(self,HWD_e,HWD_r,proj_size,dim_e,dim_r): 
+        super().__init__()
+        # dim_e = local feature map channel (32,64,128)
+        # dim_r = global feature map channel (64,128,256)
+        self.HWD_e, self.HWD_r= HWD_e,HWD_r
+        self.HWD=self.HWD_e+self.HWD_r
+        self.reduction_r=nn.Linear(dim_r,dim_e) 
+        self.dim=dim_e
+        self.EPA=My_EPA(input_size=self.HWD,hidden_size=self.dim,proj_size=proj_size)
+        # feature dimension reduction with conv2d
+        ks_h, ks_w=int(1+(1/8*HWD_e)),1
+        self.conv=nn.Conv2d(in_channels=1,out_channels=1,kernel_size=(ks_h,ks_w))
+        self.relu=nn.ReLU()
+
+    def forward(self,e,r):
+        '''
+        e: local feature (H x W x D x C)
+        r: global feature (H/2 x W/2 x D/2 x 2C)
+        '''
+        skip=e # e: [B, C, D, H, W]
+        b_e, c_e, d_e, h_e, w_e = e.shape[0],e.shape[1],e.shape[2],e.shape[3],e.shape[4]
+
+        e=e.reshape(e.shape[0],e.shape[1],e.shape[2]*e.shape[3]*e.shape[4]).permute(0,2,1) # e: [B, HWD, C]
+        r=r.reshape(r.shape[0],r.shape[1],r.shape[2]*r.shape[3]*r.shape[4]).permute(0,2,1) # r: [B, HWD/8, 2C]
+
+        r=self.reduction_r(r) # [B, HWD/8,C]
+        x=torch.cat([e,r],1) # [B, 9/8*HWD, C]
+        x=self.EPA(x) # [B, 9/8*HWD, C]
+        x=x.unsqueeze(1) # [B, 1, 9/8*HWD, C]
+        x=self.conv(x) # [B, 1, HWD, C]
+        x=x.squeeze(1).permute(0,2,1).reshape(b_e,c_e,d_e,h_e,w_e) # [B,C,D,H,W]
+        x=x+skip # skip connection
+        x=self.relu(x)
+
+        return x
+
+
 '''
 NFCE 수정 버전 (depthwise seperable conv를 이용함)
 '''
@@ -53,6 +95,7 @@ class My_NFCE(nn.Module):
         
         return x
 
+
 '''
 패치 합치기 (해상도 정보와 차원 정보를 채널 정보로 보냄)
 '''
@@ -101,6 +144,7 @@ class My_PatchMerging(nn.Module):
         y=y.permute(0,4,3,1,2) # B, 2*C, D/2, H/2, W/2
         return y
 
+
 '''
 패치 확장하기 (채널 정보를 해상도 정보와 차원 정보로 보냄)
 '''
@@ -146,7 +190,7 @@ class My_PatchExpanding(nn.Module):
 
 
 '''
-EPA 직렬 버전
+EPA 직렬 버전1 (채널->위치, qkv weight 공유x)
 '''
 class My_EPA(nn.Module):
     def __init__(self, input_size, hidden_size, proj_size, num_heads=4, qkv_bias=False,
@@ -158,9 +202,10 @@ class My_EPA(nn.Module):
 
         # qkv are 3 linear layers (query, key, value)
         self.qkv = nn.Linear(hidden_size, hidden_size * 3, bias=qkv_bias)
+        self.qkv2 = nn.Linear(hidden_size, hidden_size * 3, bias=qkv_bias)
 
         # projection matrices with shared weights used in attention module to project
-        self.proj_q = self.proj_k = self.proj_v = nn.Linear(input_size, proj_size)
+        self.proj_k = self.proj_v = nn.Linear(input_size, proj_size)
 
         self.attn_drop = nn.Dropout(channel_attn_drop) 
         self.attn_drop_2 = nn.Dropout(spatial_attn_drop)
@@ -168,7 +213,7 @@ class My_EPA(nn.Module):
     def forward(self, x):
         '''
         Channel Attention
-        : Q -> Q(p), K -> K(p) [ Q_T(p) x K(p) ]
+        : [ Q_T x K ]
         '''
         B, N, C = x.shape # N=HWD
 
@@ -183,11 +228,8 @@ class My_EPA(nn.Module):
         q_t = torch.nn.functional.normalize(q_t, dim=-1)
         k_t = torch.nn.functional.normalize(k_t, dim=-1)
         
-        q_t_projected = self.proj_q(q_t) # B x h x C/h x p
-        k_t_projected = self.proj_k(k_t) # B x h x C/h x p
-
-        k_projected = k_t_projected.transpose(-2, -1) # K(p) : B x h x p x C/h
-        attn_CA = (q_t_projected @ k_projected) * self.temperature # [Q_T(p) x K(p)] B x h x C/h x C/h 
+        k = k_t.transpose(-2, -1) # K : B x h x C/h x C/h
+        attn_CA = (q_t @ k) * self.temperature # [Q_T x K] B x h x C/h x C/h 
 
         attn_CA = attn_CA.softmax(dim=-1)
         attn_CA = self.attn_drop(attn_CA) # [Channel Attn Map] B x h x C/h x C/h
@@ -201,7 +243,7 @@ class My_EPA(nn.Module):
         Spatial Attention
         : K -> K(p), V -> V(p) [ Q x K_T(p) ]
         '''
-        qkv2 = self.qkv(x_CA).reshape(B, N, 3, self.num_heads, C // self.num_heads) # B x N x 3 x h x C/h
+        qkv2 = self.qkv2(x_CA).reshape(B, N, 3, self.num_heads, C // self.num_heads) # B x N x 3 x h x C/h
         qkv2 = qkv2.permute(2, 0, 3, 1, 4) # 3 x B x h x N x C/h
         q2, k2, v2 = qkv2[0], qkv2[1], qkv2[2] # B x h x N x C/h
 
@@ -226,6 +268,89 @@ class My_EPA(nn.Module):
         # [Spatial Attn Map x V(p)] B x h x N x C/h -> B x C/h x h x N -> B x N x C
         x_SA = (attn_SA @ v2_projected).permute(0, 3, 1, 2).reshape(B, N, C) 
         x = x_SA
+
+        return x
+
+
+'''
+EPA 직렬 버전2 (위치->채널, qkv weight 공유x)
+'''
+class My_EPA2(nn.Module):
+    def __init__(self, input_size, hidden_size, proj_size, num_heads=4, qkv_bias=False,
+                 channel_attn_drop=0.1, spatial_attn_drop=0.1):
+        super().__init__()
+        self.num_heads = num_heads
+        self.temperature = nn.Parameter(torch.ones(num_heads, 1, 1)) # for channel attention
+        self.temperature2 = nn.Parameter(torch.ones(num_heads, 1, 1)) # for spatial attention
+
+        # qkv are 3 linear layers (query, key, value)
+        self.qkv = nn.Linear(hidden_size, hidden_size * 3, bias=qkv_bias)
+        self.qkv2 = nn.Linear(hidden_size, hidden_size * 3, bias=qkv_bias)
+
+        # projection matrices with shared weights used in attention module to project
+        self.proj_k = self.proj_v = nn.Linear(input_size, proj_size)
+
+        self.attn_drop = nn.Dropout(channel_attn_drop) 
+        self.attn_drop_2 = nn.Dropout(spatial_attn_drop)
+    
+    def forward(self, x):
+        B, N, C = x.shape # N=HWD
+        
+        '''
+        Spatial Attention
+        : K -> K(p), V -> V(p) [ Q x K_T(p) ]
+        '''
+        qkv2 = self.qkv2(x).reshape(B, N, 3, self.num_heads, C // self.num_heads) # B x N x 3 x h x C/h
+        qkv2 = qkv2.permute(2, 0, 3, 1, 4) # 3 x B x h x N x C/h
+        q2, k2, v2 = qkv2[0], qkv2[1], qkv2[2] # B x h x N x C/h
+
+        q2_t = q2.transpose(-2, -1) # B x h x C/h x N
+        k2_t = k2.transpose(-2, -1) # B x h x C/h x N
+        v2_t = v2.transpose(-2, -1) # B x h x C/h x N
+
+        k2_t_projected = self.proj_k(k2_t) # B x h x C/h x p
+        v2_t_projected = self.proj_v(v2_t) # B x h x C/h x p
+
+        q2_t = torch.nn.functional.normalize(q2_t, dim=-1)
+        k2_t = torch.nn.functional.normalize(k2_t, dim=-1)
+
+        q2 = q2_t.permute(0, 1, 3, 2) # Q : B x h x N x C/h
+        attn_SA = (q2 @ k2_t_projected) * self.temperature2  # [Q x K_T(p)] B x h x N x p
+        
+        attn_SA = attn_SA.softmax(dim=-1)
+        attn_SA = self.attn_drop_2(attn_SA) # [Spatial Attn Map] B x h x N x p
+        
+        v2_projected = v2_t_projected.transpose(-2, -1) # V(p) : B x h x p x C/h
+
+        # [Spatial Attn Map x V(p)] B x h x N x C/h -> B x C/h x h x N -> B x N x C
+        x_SA = (attn_SA @ v2_projected).permute(0, 3, 1, 2).reshape(B, N, C) 
+        
+        '''
+        Channel Attention
+        : [ Q_T x K ]
+        '''
+        qkv = self.qkv(x_SA).reshape(B, N, 3, self.num_heads, C // self.num_heads) # B x N x 3 x h x C/h
+        qkv = qkv.permute(2, 0, 3, 1, 4) # 3 x B x h x N x C/h
+        q, k, v = qkv[0], qkv[1], qkv[2] # B x h x N x C/h
+
+        q_t = q.transpose(-2, -1) # B x h x C/h x N
+        k_t = k.transpose(-2, -1) # B x h x C/h x N
+        v_t = v.transpose(-2, -1) # B x h x C/h x N
+
+        q_t = torch.nn.functional.normalize(q_t, dim=-1)
+        k_t = torch.nn.functional.normalize(k_t, dim=-1)
+        
+        k = k_t.transpose(-2, -1) # K : B x h x C/h x C/h
+        attn_CA = (q_t @ k) * self.temperature # [Q_T x K] B x h x C/h x C/h 
+
+        attn_CA = attn_CA.softmax(dim=-1)
+        attn_CA = self.attn_drop(attn_CA) # [Channel Attn Map] B x h x C/h x C/h
+
+        v = v_t.permute(0,1,3,2) # V : B x h x N x C/h
+
+        # [V x Channel Attn Map] B x h x N x C/h -> B x C/h x h x N -> B x N x C
+        x_CA = (v @ attn_CA).permute(0, 3, 1, 2).reshape(B, N, C)
+        x = x_CA
 
         return x
 
