@@ -45,6 +45,40 @@ class My_Fusion(nn.Module):
 
         return x
 
+'''
+Fusion 두 번째 버전
+'''
+class My_Fusion2(nn.Module):
+    def __init__(self,HWD_e,proj_size,dim_e): 
+        super().__init__()
+        # dim_e = local feature map channel (32,64,128)
+        # dim_r = global feature map channel (64,128,256)
+        self.HWD=HWD_e
+        self.dim=dim_e
+        self.EPA=My_EPA(input_size=self.HWD,hidden_size=self.dim,proj_size=proj_size)
+        # upsampling with Transposed Conv3D
+        self.upsampling=nn.ConvTranspose3d(in_channels=dim_e*2,out_channels=dim_e,kernel_size=2,stride=2)
+        self.relu=nn.ReLU()
+
+    def forward(self,e,r):
+        '''
+        e: local feature (H x W x D x C)
+        r: global feature (H/2 x W/2 x D/2 x 2C)
+        '''
+        skip=e # e: [B, C, D, H, W]
+        b_e, c_e, d_e, h_e, w_e = e.shape[0],e.shape[1],e.shape[2],e.shape[3],e.shape[4]
+
+        r=self.upsampling(r) # r: [B, C, D, H, W]
+        x=e+r # x: [B, C, D, H, W]
+        x=x.reshape(x.shape[0],x.shape[1],x.shape[2]*x.shape[3]*x.shape[4]).permute(0,2,1) # x: [B, HWD, C]        
+        x=self.EPA(x) # x: [B, HWD, C]   
+        x=x.permute(0,2,1).reshape(b_e,c_e,d_e,h_e,w_e) # [B,C,D,H,W]
+        
+        x=x+skip # skip connection
+        x=self.relu(x)
+
+        return x
+
 
 '''
 NFCE 수정 버전 (depthwise seperable conv를 이용함)
