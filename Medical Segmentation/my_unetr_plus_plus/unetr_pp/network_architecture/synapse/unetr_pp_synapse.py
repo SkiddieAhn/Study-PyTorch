@@ -3,7 +3,7 @@ from typing import Tuple, Union
 from unetr_pp.network_architecture.neural_network import SegmentationNetwork
 from unetr_pp.network_architecture.dynunet_block import UnetOutBlock, UnetResBlock, get_conv_layer
 from unetr_pp.network_architecture.synapse.model_components import UnetrPPEncoder, UnetrUpBlock
-from unetr_pp.network_architecture.my_module import My_TIF
+from unetr_pp.network_architecture.my_module import My_Fusion, My_Fusion2
 
 class UNETR_PP(SegmentationNetwork):
     """
@@ -124,29 +124,47 @@ class UNETR_PP(SegmentationNetwork):
             conv_decoder=True, # upsampling -> TrasposedConv
         )
 
-        self.fusion3=My_TIF(
+        self.fusion3=My_Fusion2(
             HWD_e=8*8*8,
-            HWD_r=4*4*4,
             proj_size=64, 
             dim_e=feature_size*8,
-            dim_r=feature_size*16
         )
 
-        self.fusion2=My_TIF(
+        self.fusion2=My_Fusion2(
             HWD_e=16*16*16,
-            HWD_r=8*8*8,
             proj_size=64, 
             dim_e=feature_size*4,
-            dim_r=feature_size*8
         )
 
-        self.fusion1=My_TIF(
+        self.fusion1=My_Fusion2(
             HWD_e=32*32*32,
-            HWD_r=16*16*16,
             proj_size=64, 
             dim_e=feature_size*2,
-            dim_r=feature_size*4
         )
+
+        # self.fusion3=My_Fusion(
+        #     HWD_e=8*8*8,
+        #     HWD_r=4*4*4,
+        #     proj_size=64, 
+        #     dim_e=feature_size*8,
+        #     dim_r=feature_size*16
+        # )
+
+        # self.fusion2=My_Fusion(
+        #     HWD_e=16*16*16,
+        #     HWD_r=8*8*8,
+        #     proj_size=64, 
+        #     dim_e=feature_size*4,
+        #     dim_r=feature_size*8
+        # )
+
+        # self.fusion1=My_Fusion(
+        #     HWD_e=32*32*32,
+        #     HWD_r=16*16*16,
+        #     proj_size=64, 
+        #     dim_e=feature_size*2,
+        #     dim_r=feature_size*4
+        # )
 
         self.out1 = UnetOutBlock(spatial_dims=3, in_channels=feature_size, out_channels=out_channels)
         if self.do_ds:

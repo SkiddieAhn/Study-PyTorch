@@ -27,7 +27,8 @@ class UnetrPPEncoder(nn.Module):
                 # get_conv_layer(spatial_dims, dims[i], dims[i + 1], kernel_size=(2, 2, 2), stride=(2, 2, 2),
                 #                dropout=dropout, conv_only=True, ),
                 # get_norm_layer(name=("group", {"num_groups": dims[i]}), channels=dims[i + 1]),
-                My_PatchMerging(dims[i])
+                My_PatchMerging(dims[i]),
+                get_norm_layer(name=("group", {"num_groups": dims[i]}), channels=dims[i + 1])
             )
             self.downsample_layers.append(downsample_layer)
 

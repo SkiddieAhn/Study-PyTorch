@@ -1,8 +1,127 @@
-import sys
+import sys,math
 import torch
 from torch import nn, einsum
 from einops import rearrange
 sys.path.append('.')
+
+'''
+All Scale Fusion (Conv, Deconv)
+'''
+class My_All_Scale_Fusion(nn.Module):
+    def __init__(self,std_cnl): 
+        super().__init__()
+        '''
+        std_cnl = standard_channel
+        ex) 32
+        '''
+        self.control=nn.ModuleList([])
+        for in_cnl in [32,64,128,256]: 
+            if in_cnl == std_cnl: # --> Identity
+                self.control.append(nn.Identity())
+
+            elif in_cnl > std_cnl: # --> upsampling
+                itr=int(math.log2(in_cnl//std_cnl))
+                self.up_layer=nn.Sequential()
+                cnl=in_cnl
+                for i in range(itr):
+                    self.up_layer.add_module(f'upsample_{i+1}',nn.ConvTranspose3d(in_channels=cnl,out_channels=cnl//2,kernel_size=2,stride=2))
+                    cnl=cnl//2
+                self.control.append(self.up_layer)
+
+            else: # --> downsampling
+                itr=int(math.log2(std_cnl//in_cnl))
+                self.down_layer=nn.Sequential()
+                cnl=in_cnl
+                for i in range(itr):
+                    self.down_layer.add_module(f'downsample_{i+1}',nn.Conv3d(in_channels=cnl,out_channels=cnl*2,kernel_size=2,stride=2))
+                    cnl=cnl*2
+                self.control.append(self.down_layer)
+        
+        self.nfce=My_NFCE(std_cnl*4)
+        self.conv=nn.Conv3d(in_channels=std_cnl*4,out_channels=std_cnl,kernel_size=1)
+        self.relu=nn.ReLU()
+
+    def forward(self,standard,x1,x2,x3,x4): 
+        # save standard feature
+        save=standard
+        # control resolution and channel
+        x1=self.control[0](x1)
+        x2=self.control[1](x2)
+        x3=self.control[2](x3)
+        x4=self.control[3](x4)
+
+        # concat 
+        x=torch.cat([x1,x2,x3,x4],1)
+
+        # NFCE + 1x1x1 conv
+        x=self.nfce(x)
+        x=self.conv(x)
+
+        # skip connection + relu
+        x+=save
+        x=self.relu(x)
+
+        return x
+
+'''
+All Scale Fusion2 (Patch Merging, Expanding)
+'''
+class My_All_Scale_Fusion2(nn.Module):
+    def __init__(self,std_cnl): 
+        super().__init__()
+        '''
+        std_cnl = standard_channel
+        ex) 32
+        '''
+        self.control=nn.ModuleList([])
+        for in_cnl in [32,64,128,256]: 
+            if in_cnl == std_cnl: # --> Identity
+                self.control.append(nn.Identity())
+
+            elif in_cnl > std_cnl: # --> upsampling
+                itr=int(math.log2(in_cnl//std_cnl))
+                self.up_layer=nn.Sequential()
+                cnl=in_cnl
+                for i in range(itr):
+                    self.up_layer.add_module(f'upsample_{i+1}',My_PatchExpanding(cnl))
+                    cnl=cnl//2
+                self.control.append(self.up_layer)
+
+            else: # --> downsampling
+                itr=int(math.log2(std_cnl//in_cnl))
+                self.down_layer=nn.Sequential()
+                cnl=in_cnl
+                for i in range(itr):
+                    self.down_layer.add_module(f'downsample_{i+1}',My_PatchMerging(cnl))
+                    cnl=cnl*2
+                self.control.append(self.down_layer)
+        
+        self.nfce=My_NFCE(std_cnl*4)
+        self.conv=nn.Conv3d(in_channels=std_cnl*4,out_channels=std_cnl,kernel_size=1)
+        self.relu=nn.ReLU()
+
+    def forward(self,standard,x1,x2,x3,x4): 
+        # save standard feature
+        save=standard
+        # control resolution and channel
+        x1=self.control[0](x1)
+        x2=self.control[1](x2)
+        x3=self.control[2](x3)
+        x4=self.control[3](x4)
+
+        # concat 
+        x=torch.cat([x1,x2,x3,x4],1)
+
+        # NFCE + 1x1x1 conv
+        x=self.nfce(x)
+        x=self.conv(x)
+
+        # skip connection + relu
+        x+=save
+        x=self.relu(x)
+
+        return x
+
 
 
 '''
@@ -169,8 +288,8 @@ class My_PatchMerging(nn.Module):
             else:
                 y=torch.cat([y,rst],-2) # final shape -> [B, H/2, W/2, D/2, 8*C]
         
-        # normalization
-        y=self.norm(y) # B, H/2, W/2, D/2, 8*C
+        # # normalization
+        # y=self.norm(y) # B, H/2, W/2, D/2, 8*C
         
         # embedding
         y=self.reduction(y) # B, H/2, W/2, D/2, 2*C
