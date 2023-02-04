@@ -33,10 +33,10 @@ class UnetrPPEncoder(nn.Module):
             self.downsample_layers.append(downsample_layer)
 
         # NFCE Layers (Encoder)
-        self.my_nfce_layers=nn.ModuleList()
-        for i in range(4):
-            my_nfce_layer=My_NFCE(dims[i])
-            self.my_nfce_layers.append(my_nfce_layer)
+        # self.my_nfce_layers=nn.ModuleList()
+        # for i in range(4):
+        #     my_nfce_layer=My_NFCE(dims[i])
+        #     self.my_nfce_layers.append(my_nfce_layer)
 
         self.stages = nn.ModuleList()  # 4 feature resolution stages, each consisting of multiple Transformer blocks
         for i in range(4):
@@ -62,13 +62,13 @@ class UnetrPPEncoder(nn.Module):
 
         x = self.downsample_layers[0](x) # patch_embedding
         x = self.stages[0](x) # esa
-        x = self.my_nfce_layers[0](x) # nfce 
+        # x = self.my_nfce_layers[0](x) # nfce 
         hidden_states.append(x) # ---> enc1
 
         for i in range(1, 4):
             x = self.downsample_layers[i](x) # downsampling
             x = self.stages[i](x) # esa
-            x = self.my_nfce_layers[i](x) # nfce 
+            # x = self.my_nfce_layers[i](x) # nfce 
             
             if i == 3:  # Reshape the output of the last stage
                 x = einops.rearrange(x, "b c h w d -> b (h w d) c")
@@ -134,7 +134,7 @@ class UnetrUpBlock(nn.Module):
             self.upsampling=My_PatchExpanding(dim=in_channels)
 
         # NFCE Block
-        self.my_nfce=My_NFCE(out_channels)
+        # self.my_nfce=My_NFCE(out_channels)
 
         # 4 feature resolution stages, each consisting of multiple residual blocks
         self.decoder_block = nn.ModuleList()
@@ -162,7 +162,7 @@ class UnetrUpBlock(nn.Module):
 
     def forward(self, inp, skip):
         out = self.upsampling(inp)
-        out = self.my_nfce(out) # nfce
+        # out = self.my_nfce(out) # nfce
         out = out + skip
         out = self.decoder_block[0](out)
 

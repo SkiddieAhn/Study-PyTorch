@@ -256,7 +256,7 @@ class My_PatchMerging(nn.Module):
     def __init__(self, dim, norm_layer=nn.LayerNorm):
         super().__init__()
         self.dim = dim
-        self.norm = norm_layer(8 * dim)
+        # self.norm = norm_layer(8 * dim)
         self.reduction = nn.Linear(8 * dim, 2 * dim, bias=False)
 
     def forward(self, x):
@@ -305,7 +305,7 @@ class My_PatchExpanding(nn.Module):
     def __init__(self, dim, norm_layer=nn.LayerNorm):
         super().__init__()
         self.dim = dim
-        self.norm = norm_layer(dim//2)
+        # self.norm = norm_layer(dim//2)
         self.expand = nn.Linear(dim, 4 * dim, bias=False)
 
     def forward(self, y):
@@ -336,7 +336,7 @@ class My_PatchExpanding(nn.Module):
                 x=torch.cat([x,rst],-2) # final shape -> [B, 2*H, 2*W, 2*D, C//2]
                         
         # normalization
-        x=self.norm(x) # B, 2*H, 2*W, 2*D, C//2
+        # x=self.norm(x) # B, 2*H, 2*W, 2*D, C//2
 
         x=x.permute(0,4,3,1,2) # B, C//2, 2*D, 2*H, 2*W
         return x
@@ -558,7 +558,7 @@ class My_Attention(nn.Module):
 
         self.to_qkv = nn.Linear(dim, inner_dim * 3, bias = False) 
 
-        self.E = self.F = nn.Linear(input_size+1, proj_size) # 수정
+        self.E = self.F = nn.Linear(input_size, proj_size) # 수정
 
         self.to_out = nn.Sequential(
             nn.Linear(inner_dim, dim),
@@ -602,8 +602,8 @@ class My_Transformer(nn.Module):
 class My_Cross_Att(nn.Module):
     def __init__(self, HWD_e, HWD_r, proj_size, dim_e, dim_r): # 수정
         super().__init__()
-        self.transformer_e = My_Transformer(HWD_e, proj_size, dim=dim_e, depth=1, heads=4, dim_head=dim_e//4, mlp_dim=128) # UNETR++와 head, dim_head 통일 <local>
-        self.transformer_r = My_Transformer(HWD_r, proj_size, dim=dim_r, depth=1, heads=4, dim_head=dim_r//4, mlp_dim=256) # UNETR++와 head, dim_head 통일 <global>
+        self.transformer_e = My_Transformer(HWD_e+1, proj_size, dim=dim_e, depth=1, heads=4, dim_head=dim_e//4, mlp_dim=128) # UNETR++와 head, dim_head 통일 <local>
+        self.transformer_r = My_Transformer(HWD_r+1, proj_size, dim=dim_r, depth=1, heads=4, dim_head=dim_r//4, mlp_dim=256) # UNETR++와 head, dim_head 통일 <global>
         self.norm_e = nn.LayerNorm(dim_e) 
         self.norm_r = nn.LayerNorm(dim_r) 
         self.avgpool = nn.AdaptiveAvgPool1d(1)

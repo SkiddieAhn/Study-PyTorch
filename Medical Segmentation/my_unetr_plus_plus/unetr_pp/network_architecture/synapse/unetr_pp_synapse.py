@@ -3,7 +3,9 @@ from typing import Tuple, Union
 from unetr_pp.network_architecture.neural_network import SegmentationNetwork
 from unetr_pp.network_architecture.dynunet_block import UnetOutBlock, UnetResBlock, get_conv_layer
 from unetr_pp.network_architecture.synapse.model_components import UnetrPPEncoder, UnetrUpBlock
-from unetr_pp.network_architecture.my_module import My_Fusion, My_Fusion2
+from unetr_pp.network_architecture.my_module import *
+from unetr_pp.network_architecture.my_module2 import *
+
 
 class UNETR_PP(SegmentationNetwork):
     """
@@ -124,24 +126,6 @@ class UNETR_PP(SegmentationNetwork):
             conv_decoder=True, # upsampling -> TrasposedConv
         )
 
-        self.fusion3=My_Fusion2(
-            HWD_e=8*8*8,
-            proj_size=64, 
-            dim_e=feature_size*8,
-        )
-
-        self.fusion2=My_Fusion2(
-            HWD_e=16*16*16,
-            proj_size=64, 
-            dim_e=feature_size*4,
-        )
-
-        self.fusion1=My_Fusion2(
-            HWD_e=32*32*32,
-            proj_size=64, 
-            dim_e=feature_size*2,
-        )
-
         # self.fusion3=My_Fusion(
         #     HWD_e=8*8*8,
         #     HWD_r=4*4*4,
@@ -166,6 +150,8 @@ class UNETR_PP(SegmentationNetwork):
         #     dim_r=feature_size*4
         # )
 
+        self.all_scale_fusion=ASTB(proj_size=64)
+
         self.out1 = UnetOutBlock(spatial_dims=3, in_channels=feature_size, out_channels=out_channels)
         if self.do_ds:
             self.out2 = UnetOutBlock(spatial_dims=3, in_channels=feature_size * 2, out_channels=out_channels)
@@ -175,6 +161,38 @@ class UNETR_PP(SegmentationNetwork):
         x = x.view(x.size(0), feat_size[0], feat_size[1], feat_size[2], hidden_size)
         x = x.permute(0, 4, 1, 2, 3).contiguous()
         return x
+
+    # def forward(self, x_in):
+    #     # x_in: H x W x D x C
+
+    #     x_output, hidden_states = self.unetr_pp_encoder(x_in)
+
+    #     convBlock = self.encoder1(x_in) # H x W x D x 16
+
+    #     # Four encoders
+    #     enc1 = hidden_states[0] # H/4 x W/4 x D/2 x 32
+    #     enc2 = hidden_states[1] # H/8 x W/8 x D/4 x 64
+    #     enc3 = hidden_states[2] # H/16 x W/16 x D/8 x 128
+    #     enc4 = hidden_states[3] 
+    #     enc4 = self.proj_feat(enc4, self.hidden_size, self.feat_size) # H/32 x W/32 x D/16 x 256
+
+    #     # fusion
+    #     fs3=self.fusion3(enc3,enc4)
+    #     fs2=self.fusion2(enc2,enc3)
+    #     fs1=self.fusion1(enc1,enc2)
+
+    #     # Five decoders
+    #     dec4 = self.decoder4(enc4, fs3)
+    #     dec3 = self.decoder3(dec4, fs2)
+    #     dec2 = self.decoder2(dec3, fs1)
+    #     dec1 = self.decoder1(dec2, convBlock)
+
+    #     if self.do_ds:
+    #         logits = [self.out1(dec1), self.out2(dec2), self.out3(dec3)]
+    #     else:
+    #         logits = self.out1(dec1)
+
+    #     return logits
 
     def forward(self, x_in):
         # x_in: H x W x D x C
@@ -191,12 +209,10 @@ class UNETR_PP(SegmentationNetwork):
         enc4 = self.proj_feat(enc4, self.hidden_size, self.feat_size) # H/32 x W/32 x D/16 x 256
 
         # fusion
-        fs3=self.fusion3(enc3,enc4)
-        fs2=self.fusion2(enc2,enc3)
-        fs1=self.fusion1(enc1,enc2)
+        fs1, fs2, fs3, fs4 = self.all_scale_fusion(enc1, enc2, enc3, enc4)
 
         # Five decoders
-        dec4 = self.decoder4(enc4, fs3)
+        dec4 = self.decoder4(fs4, fs3)
         dec3 = self.decoder3(dec4, fs2)
         dec2 = self.decoder2(dec3, fs1)
         dec1 = self.decoder1(dec2, convBlock)
