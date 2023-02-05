@@ -1,5 +1,6 @@
 import sys,math
 import torch
+from monai.networks.layers.utils import get_norm_layer
 from torch import nn, einsum
 from einops import rearrange
 sys.path.append('.')
@@ -250,7 +251,7 @@ class My_NFCE(nn.Module):
 
 
 '''
-패치 합치기 (해상도 정보와 차원 정보를 채널 정보로 보냄)
+패치 합치기 (해상도 정보와 차원 정보를 채널 정보로 보냄) + GN
 '''
 class My_PatchMerging(nn.Module):
     def __init__(self, dim, norm_layer=nn.LayerNorm):
@@ -258,6 +259,7 @@ class My_PatchMerging(nn.Module):
         self.dim = dim
         # self.norm = norm_layer(8 * dim)
         self.reduction = nn.Linear(8 * dim, 2 * dim, bias=False)
+        self.gnorm = get_norm_layer(name=("group", {"num_groups": dim}), channels=dim*2)
 
     def forward(self, x):
         """
@@ -288,13 +290,15 @@ class My_PatchMerging(nn.Module):
             else:
                 y=torch.cat([y,rst],-2) # final shape -> [B, H/2, W/2, D/2, 8*C]
         
-        # # normalization
+        # normalization
         # y=self.norm(y) # B, H/2, W/2, D/2, 8*C
         
         # embedding
         y=self.reduction(y) # B, H/2, W/2, D/2, 2*C
 
         y=y.permute(0,4,3,1,2) # B, 2*C, D/2, H/2, W/2
+        y=self.gnorm(y)
+
         return y
 
 

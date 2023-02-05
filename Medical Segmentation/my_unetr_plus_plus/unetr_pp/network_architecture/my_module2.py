@@ -2,6 +2,7 @@ import math
 import torch
 from torch import nn
 from unetr_pp.network_architecture.my_module import My_Transformer,My_EPA2
+from monai.networks.layers.utils import get_norm_layer
 
 '''
 Residual Block (BN)
@@ -27,7 +28,7 @@ class ResBlock(nn.Module):
         return out
 
 '''
-Residual Block (BN)
+Residual Block (GN)
 1x1x1 먼저 해준 버전 
 '''
 # class ResBlock(nn.Module):
@@ -37,10 +38,10 @@ Residual Block (BN)
 #         # Residual Block
 #         self.residual_block = nn.Sequential(
 #                 nn.Conv3d(out_dim, out_dim, kernel_size=3, padding=1),
-#                 nn.BatchNorm3d(num_features=out_dim),
+#                 nn.GroupNorm(num_channels=out_dim,num_groups=32),
 #                 nn.ReLU(),
 #                 nn.Conv3d(out_dim, out_dim, kernel_size=3, padding=1),
-#                 nn.BatchNorm3d(num_features=out_dim),
+#                 nn.GroupNorm(num_channels=out_dim,num_groups=32),
 #             )            
 #         self.relu = nn.ReLU()
                   
@@ -74,6 +75,10 @@ Residual Block (GN)
 #         out = self.relu(out) # relu
 #         return out
 
+
+'''
+ASTB (GN)
+'''
 class ASTB(nn.Module):
     def __init__(self,proj_size): 
         '''
@@ -137,6 +142,7 @@ class ASTB(nn.Module):
                     cnl=in_cnl
                     for i in range(itr):
                         self.down_layer.add_module(f'downsample_{i+1}',nn.Conv3d(in_channels=cnl,out_channels=cnl*2,kernel_size=2,stride=2))
+                        self.down_layer.add_module(f'group_norm{i+1}',get_norm_layer(name=("group", {"num_groups": cnl}), channels=cnl*2)) # <GN>
                         cnl=cnl*2
                     control_cnl_rst.append(self.down_layer)
 
@@ -274,6 +280,7 @@ class ASTB(nn.Module):
         y4 = y4 + save4
 
         return y1, y2, y3, y4
+
 
 
 class LSTB(nn.Module):
