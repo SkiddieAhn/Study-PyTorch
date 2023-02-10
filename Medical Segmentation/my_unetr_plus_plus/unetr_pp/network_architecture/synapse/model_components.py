@@ -167,3 +167,11 @@ class UnetrUpBlock(nn.Module):
         out = self.decoder_block[0](out)
 
         return out
+
+    # def forward(self, inp, skip):
+    #     out1 = self.upsampling(inp)
+    #     # out = self.my_nfce(out) # nfce
+    #     out = out1 + skip
+    #     out = self.decoder_block[0](out)
+
+    #     return out, out1

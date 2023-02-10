@@ -858,3 +858,78 @@ class ASTB_ESA(nn.Module):
         y4 = y4 + save4
 
         return y1, y2, y3, y4
+
+class FinalConcat(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        def Conv(in_cnl, out_cnl, ks=3, st=1):
+            layers = []
+            layers += [nn.Conv3d(in_channels=in_cnl,out_channels=out_cnl,kernel_size=ks,stride=st,padding=1)]
+            layers += [nn.BatchNorm3d(num_features=out_cnl)]
+            layers += [nn.ReLU(inplace=True)]
+            conv = nn.Sequential(*layers)
+            return conv
+
+        def Upsample(in_cnl, out_cnl, ks, st):
+            layers = []
+            layers += [nn.ConvTranspose3d(in_channels=in_cnl,out_channels=out_cnl,kernel_size=ks,stride=st)]
+            layers += [nn.BatchNorm3d(num_features=out_cnl)]
+            layers += [nn.ReLU(inplace=True)]
+            convT = nn.Sequential(*layers)
+            return convT
+
+        self.ds2x = Upsample(in_cnl=64, out_cnl=32, ks=2, st = 2)
+        self.ds4x = nn.Sequential(
+            Upsample(in_cnl=128, out_cnl=64, ks=2, st = 2),
+            Upsample(in_cnl=64, out_cnl=32, ks=2, st = 2),
+        )
+        self.ds8x = nn.Sequential(
+            Upsample(in_cnl=256, out_cnl=128, ks=2, st = 2),
+            Upsample(in_cnl=128, out_cnl=64, ks=2, st = 2),
+            Upsample(in_cnl=64, out_cnl=32, ks=2, st = 2),
+        )
+
+        self.conv = Conv(in_cnl=32*4, out_cnl=32)
+        
+    def forward(self, x1, x2, x3, x4):
+        '''
+        x1 : 32 x 32 x 32 x 32
+        x2 : 16 x 16 x 16 x 64
+        x3 : 8 x 8 x 8 x 128
+        x4 : 4 x 4 x 4 x 256
+        '''
+        x2 = self.ds2x(x2)
+        x3 = self.ds4x(x3)
+        x4 = self.ds8x(x4)
+
+        x = torch.cat([x1,x2,x3,x4],1) # B, 4C, D, H, W
+        x = self.conv(x) # B, C, D, H, W
+        
+        return x
+
+class MFA(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        self.ds4x = nn.ConvTranspose3d(in_channels=32,out_channels=16,kernel_size=(2,4,4),stride=(2,4,4))
+
+        self.ds8x = nn.Sequential(
+            nn.ConvTranspose3d(in_channels=64,out_channels=32,kernel_size=2,stride=2),
+            nn.ConvTranspose3d(in_channels=32,out_channels=16,kernel_size=(2,4,4),stride=(2,4,4))
+        )
+
+        
+    def forward(self, x1, x2, x3, x4):
+        '''
+        x1 : 128 x 128 x 64 x 16
+        x2 : 128 x 128 x 64 x 16
+        x3 : 32 x 32 x 32 x 32
+        x4 : 16 x 16 x 16 x 64
+        '''
+        x3 = self.ds4x(x3)
+        x4 = self.ds8x(x4)
+
+        x = torch.cat([x1,x2,x3,x4],1) # B, 4C, D, H, W
+                
+        return x
