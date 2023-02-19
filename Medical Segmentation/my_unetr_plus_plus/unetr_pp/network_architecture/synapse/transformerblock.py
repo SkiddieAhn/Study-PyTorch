@@ -2,6 +2,7 @@ import torch.nn as nn
 import torch
 from unetr_pp.network_architecture.dynunet_block import UnetResBlock
 from unetr_pp.network_architecture.my_module import My_EPA
+from unetr_pp.network_architecture.my_module3 import SAB
 
 class TransformerBlock(nn.Module):
     """
@@ -31,39 +32,51 @@ class TransformerBlock(nn.Module):
 
         super().__init__()
 
-        if not (0 <= dropout_rate <= 1):
-            raise ValueError("dropout_rate should be between 0 and 1.")
+        self.sab = SAB(
+            input_size,
+            hidden_size,
+            proj_size,
+            num_heads,
+            dropout_rate,
+            pos_embed
+        )
 
-        if hidden_size % num_heads != 0:
-            print("Hidden size is ", hidden_size)
-            print("Num heads is ", num_heads)
-            raise ValueError("hidden_size should be divisible by num_heads.")
+    def forward(self,x):
+        return self.sab(x)
 
-        self.norm = nn.LayerNorm(hidden_size)
-        self.gamma = nn.Parameter(1e-6 * torch.ones(hidden_size), requires_grad=True)
-        # self.epa_block = EPA(input_size=input_size, hidden_size=hidden_size, proj_size=proj_size, num_heads=num_heads, channel_attn_drop=dropout_rate,spatial_attn_drop=dropout_rate)
-        self.epa_block = My_EPA(input_size=input_size, hidden_size=hidden_size, proj_size=proj_size, num_heads=num_heads, channel_attn_drop=dropout_rate,spatial_attn_drop=dropout_rate)
-        self.conv51 = UnetResBlock(3, hidden_size, hidden_size, kernel_size=3, stride=1, norm_name="batch")
-        self.conv8 = nn.Sequential(nn.Dropout3d(0.1, False), nn.Conv3d(hidden_size, hidden_size, 1))
+    #     if not (0 <= dropout_rate <= 1):
+    #         raise ValueError("dropout_rate should be between 0 and 1.")
 
-        self.pos_embed = None
-        if pos_embed:
-            self.pos_embed = nn.Parameter(torch.zeros(1, input_size, hidden_size))
+    #     if hidden_size % num_heads != 0:
+    #         print("Hidden size is ", hidden_size)
+    #         print("Num heads is ", num_heads)
+    #         raise ValueError("hidden_size should be divisible by num_heads.")
 
-    def forward(self, x):
-        B, C, H, W, D = x.shape
+    #     self.norm = nn.LayerNorm(hidden_size)
+    #     self.gamma = nn.Parameter(1e-6 * torch.ones(hidden_size), requires_grad=True)
+    #     # self.epa_block = EPA(input_size=input_size, hidden_size=hidden_size, proj_size=proj_size, num_heads=num_heads, channel_attn_drop=dropout_rate,spatial_attn_drop=dropout_rate)
+    #     self.epa_block = My_EPA(input_size=input_size, hidden_size=hidden_size, proj_size=proj_size, num_heads=num_heads, channel_attn_drop=dropout_rate,spatial_attn_drop=dropout_rate)
+    #     self.conv51 = UnetResBlock(3, hidden_size, hidden_size, kernel_size=3, stride=1, norm_name="batch")
+    #     self.conv8 = nn.Sequential(nn.Dropout3d(0.1, False), nn.Conv3d(hidden_size, hidden_size, 1))
 
-        x = x.reshape(B, C, H * W * D).permute(0, 2, 1)
+    #     self.pos_embed = None
+    #     if pos_embed:
+    #         self.pos_embed = nn.Parameter(torch.zeros(1, input_size, hidden_size))
 
-        if self.pos_embed is not None:
-            x = x + self.pos_embed
-        attn = x + self.gamma * self.epa_block(self.norm(x))
+    # def forward(self, x):
+    #     B, C, H, W, D = x.shape
 
-        attn_skip = attn.reshape(B, H, W, D, C).permute(0, 4, 1, 2, 3)  # (B, C, H, W, D)
-        attn = self.conv51(attn_skip)
-        x = attn_skip + self.conv8(attn)
+    #     x = x.reshape(B, C, H * W * D).permute(0, 2, 1)
 
-        return x
+    #     if self.pos_embed is not None:
+    #         x = x + self.pos_embed
+    #     attn = x + self.gamma * self.epa_block(self.norm(x))
+
+    #     attn_skip = attn.reshape(B, H, W, D, C).permute(0, 4, 1, 2, 3)  # (B, C, H, W, D)
+    #     attn = self.conv51(attn_skip)
+    #     x = attn_skip + self.conv8(attn)
+
+    #     return x
 
 
 # class EPA(nn.Module):
