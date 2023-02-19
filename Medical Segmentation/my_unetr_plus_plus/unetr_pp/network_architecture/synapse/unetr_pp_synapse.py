@@ -134,7 +134,7 @@ class UNETR_PP(SegmentationNetwork):
             proj_g=32 ,
             dim_l=feature_size*8,
             dim_g=feature_size*16,
-            itr=3,
+            itr=2,
         )
 
         self.fusion2=CrossMFA(
@@ -144,7 +144,7 @@ class UNETR_PP(SegmentationNetwork):
             proj_g=64, 
             dim_l=feature_size*4,
             dim_g=feature_size*8,
-            itr=3
+            itr=2
         )
 
         self.fusion1=CrossMFA(
@@ -154,7 +154,7 @@ class UNETR_PP(SegmentationNetwork):
             proj_g=96, 
             dim_l=feature_size*2,
             dim_g=feature_size*4,
-            itr=3
+            itr=2
         )
 
         # self.all_scale_fusion=ASTB(proj_size=64)

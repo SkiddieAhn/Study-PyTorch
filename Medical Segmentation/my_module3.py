@@ -386,8 +386,17 @@ class CrossMFA(nn.Module):
 
         self.linear_g = nn.Linear(dim_g, dim_l)
 
-        self.crossAttn1 = CrossAttnModule(N_1=self.N_l, N_2=self.N_g, proj_size=self.proj_g, dim=self.dim_l, mlp_dim=self.dim_l*2) # Q: Local Feature, K,V: Global Feature
-        self.crossAttn2 = CrossAttnModule(N_1=self.N_g, N_2=self.N_l, proj_size=self.proj_l, dim=self.dim_l, mlp_dim=self.dim_l*2) # Q: Global Feature, K,V: Local Feature
+        self.crossAttn1Set = nn.ModuleList([])
+        for _ in range(self.itr):
+            self.crossAttn1Set.append(
+                CrossAttnModule(N_1=self.N_l, N_2=self.N_g, proj_size=self.proj_g, dim=self.dim_l, mlp_dim=self.dim_l*2) # Q: Local Feature, K,V: Global Feature)
+            )
+
+        self.crossAttn2Set = nn.ModuleList([])
+        for _ in range(self.itr):
+            self.crossAttn2Set.append(
+                CrossAttnModule(N_1=self.N_g, N_2=self.N_l, proj_size=self.proj_l, dim=self.dim_l, mlp_dim=self.dim_l*2) # Q: Global Feature, K,V: Local Feature
+            )
 
         self.upsample = nn.ConvTranspose3d(in_channels=dim_l,out_channels=dim_l,kernel_size=2,stride=2)
         self.NeXtBlock = NeXtBlock3D(dim = dim_l)
@@ -397,7 +406,7 @@ class CrossMFA(nn.Module):
         lf: local feature 
         ex) 32 x 32 x 32 x 32, 16 x 16 x 16 x 64, 8 x 8 x 8 x 128
 
-        fg: global feature
+        gf: global feature
         ex) 16 x 16 x 16 x 64, 8 x 8 x 8 x 128, 4 x 4 x 4 x 256
         '''
         # save local feature
@@ -421,11 +430,11 @@ class CrossMFA(nn.Module):
         ex) 16*16x16 x 32, 8*8*8 x 64, 4*4*4 x 128
         '''
 
-        # [Double Cross Attn] x itr
+        # Double Cross Attn x itr
         in_1, in_2 = lf, gf
-        for _ in range(self.itr):
-            in_1 = out_1 = self.crossAttn1(in_1, in_2) # B, HWD_l, C_l 
-            in_2 = out_2 = self.crossAttn2(in_2, in_1) # B, HWD_g, C_l
+        for i in range(self.itr):
+            in_1 = out_1 = self.crossAttn1Set[i](in_1, in_2) # B, HWD_l, C_l 
+            in_2 = out_2 = self.crossAttn2Set[i](in_2, in_1) # B, HWD_g, C_l
 
         # 2D -> 4D
         out_1_4d = out_1.reshape(B, D_l, H_l, W_l, C_l).permute(0, 4, 1, 2, 3) # B, C_l, D_l, H_l, W_l
