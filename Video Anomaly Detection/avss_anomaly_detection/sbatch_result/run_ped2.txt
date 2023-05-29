@@ -1,0 +1,114 @@
+### START DATE=Mon May 29 16:19:53 KST 2023
+
+------------------------------train cfg------------------------------
+mode: train
+dataset: ped2
+img_size: (256, 256)
+data_root: /datasets/anomalyDataset/
+data_root_s: /scratch/sha_dataset/
+generator: pm1
+flownet: 2sd
+work_num: 2
+save_dir: sha
+sch: True
+batch_size: 4
+train_data: /datasets/anomalyDataset/ped2/training/frames/
+test_data: /datasets/anomalyDataset/ped2/testing/frames/
+g_lr: 0.0001
+d_lr: 1e-05
+l2: 0.0001
+resume: None
+iters: 100000
+save_interval: 1000
+epoch_size: 25000
+
+
+====================================================
+Dataloader Ok!
+----------------------------------------------------
+[Data Size]: 16
+[Batch Size]: 4
+[One epoch]: 4 step   # (Data Size / Batch Size)
+[Epoch & Iteration]: 25000 epoch & 100000 step
+----------------------------------------------------
+====================================================
+
+====================================================
+Generator(pm1), Discriminator Ok!
+====================================================
+
+====================================================
+Pretrained FlowNet(2sd) Ok!
+====================================================
+
+====================================================
+Training Start!
+====================================================
+/home/sunghyunahn/anaconda3/envs/dvaa/lib/python3.8/site-packages/scipy/__init__.py:138: UserWarning: A NumPy version >=1.16.5 and <1.23.0 is required for this version of SciPy (detected version 1.23.1)
+  warnings.warn(f"A NumPy version >={np_minversion} and <{np_maxversion} is required for this version of "
+/home/sunghyunahn/anaconda3/envs/dvaa/lib/python3.8/site-packages/timm/models/layers/weight_init.py:33: UserWarning: Specified kernel cache directory could not be created! This disables kernel caching. Specified directory is /home/sunghyunahn/.cache/torch/kernels. This warning will appear only once per process. (Triggered internally at  ../aten/src/ATen/native/cuda/jit_utils.cpp:860.)
+  tensor.erfinv_()
+[{'index': '0',
+  'memory.free': '382',
+  'memory.total': '24268',
+  'memory.used': '23886',
+  'name': 'NVIDIA GeForce RTX 3090',
+  'timestamp': '2023/05/29 16:20:21.789',
+  'utilization.gpu': '0',
+  'utilization.memory': '0',
+  'uuid': 'GPU-6a6bb5c8-d2ff-f073-dfe9-e8f4c7b45a94'}]
+===========epoch:5 (step:20)============
+[20] G_fl_total: 0.220 | D_fl: 0.207 | psnr: 15.484 | best: 15.484 | iter_t: 1.136s | remain_t: 1 day, 7:32:47 | lr_g: 0.0001000 | lr_d: 0.0000100
+===========epoch:10 (step:40)============
+[40] G_fl_total: 0.186 | D_fl: 0.148 | psnr: 16.306 | best: 16.306 | iter_t: 1.226s | remain_t: 1 day, 10:03:00 | lr_g: 0.0001000 | lr_d: 0.0000100
+===========epoch:15 (step:60)============
+[60] G_fl_total: 0.172 | D_fl: 0.079 | psnr: 17.223 | best: 17.223 | iter_t: 1.060s | remain_t: 1 day, 5:25:41 | lr_g: 0.0000999 | lr_d: 0.0000100
+===========epoch:20 (step:80)============
+[80] G_fl_total: 0.149 | D_fl: 0.047 | psnr: 18.856 | best: 18.856 | iter_t: 1.120s | remain_t: 1 day, 7:05:39 | lr_g: 0.0000999 | lr_d: 0.0000100
+===========epoch:25 (step:100)============
+[100] G_fl_total: 0.110 | D_fl: 0.062 | psnr: 22.092 | best: 22.092 | iter_t: 1.175s | remain_t: 1 day, 8:36:18 | lr_g: 0.0000999 | lr_d: 0.0000100
+===========epoch:30 (step:120)============
+[120] G_fl_total: 0.088 | D_fl: 0.184 | psnr: 28.043 | best: 28.043 | iter_t: 1.055s | remain_t: 1 day, 5:16:33 | lr_g: 0.0000999 | lr_d: 0.0000100
+===========epoch:35 (step:140)============
+[140] G_fl_total: 0.070 | D_fl: 0.414 | psnr: 28.504 | best: 28.504 | iter_t: 1.187s | remain_t: 1 day, 8:56:19 | lr_g: 0.0000999 | lr_d: 0.0000100
+===========epoch:40 (step:160)============
+[160] G_fl_total: 0.060 | D_fl: 0.401 | psnr: 27.727 | best: 28.504 | iter_t: 1.257s | remain_t: 1 day, 10:51:17 | lr_g: 0.0000998 | lr_d: 0.0000100
+===========epoch:45 (step:180)============
+[180] G_fl_total: 0.091 | D_fl: 0.280 | psnr: 29.260 | best: 29.260 | iter_t: 1.268s | remain_t: 1 day, 11:09:46 | lr_g: 0.0000998 | lr_d: 0.0000100
+===========epoch:50 (step:200)============
+[200] G_fl_total: 0.130 | D_fl: 0.254 | psnr: 31.784 | best: 31.784 | iter_t: 1.145s | remain_t: 1 day, 7:44:59 | lr_g: 0.0000998 | lr_d: 0.0000100
+===========epoch:55 (step:220)============
+[220] G_fl_total: 0.196 | D_fl: 0.250 | psnr: 34.067 | best: 34.067 | iter_t: 1.153s | remain_t: 1 day, 7:57:08 | lr_g: 0.0000998 | lr_d: 0.0000100
+===========epoch:60 (step:240)============
+[240] G_fl_total: 0.204 | D_fl: 0.250 | psnr: 33.714 | best: 34.067 | iter_t: 1.119s | remain_t: 1 day, 7:00:04 | lr_g: 0.0000998 | lr_d: 0.0000100
+===========epoch:65 (step:260)============
+[260] G_fl_total: 0.103 | D_fl: 0.251 | psnr: 34.461 | best: 34.461 | iter_t: 1.289s | remain_t: 1 day, 11:42:11 | lr_g: 0.0000997 | lr_d: 0.0000100
+===========epoch:70 (step:280)============
+[280] G_fl_total: 0.132 | D_fl: 0.252 | psnr: 34.678 | best: 34.678 | iter_t: 1.162s | remain_t: 1 day, 8:11:26 | lr_g: 0.0000997 | lr_d: 0.0000100
+===========epoch:75 (step:300)============
+[300] G_fl_total: 0.094 | D_fl: 0.252 | psnr: 35.752 | best: 35.752 | iter_t: 1.064s | remain_t: 1 day, 5:27:43 | lr_g: 0.0000997 | lr_d: 0.0000100
+===========epoch:80 (step:320)============
+[320] G_fl_total: 0.108 | D_fl: 0.252 | psnr: 34.764 | best: 35.752 | iter_t: 1.112s | remain_t: 1 day, 6:47:46 | lr_g: 0.0000997 | lr_d: 0.0000100
+===========epoch:85 (step:340)============
+[340] G_fl_total: 0.104 | D_fl: 0.251 | psnr: 34.415 | best: 35.752 | iter_t: 1.198s | remain_t: 1 day, 9:09:25 | lr_g: 0.0000997 | lr_d: 0.0000100
+===========epoch:90 (step:360)============
+[360] G_fl_total: 0.048 | D_fl: 0.251 | psnr: 35.814 | best: 35.814 | iter_t: 1.170s | remain_t: 1 day, 8:22:50 | lr_g: 0.0000996 | lr_d: 0.0000100
+===========epoch:95 (step:380)============
+[380] G_fl_total: 0.064 | D_fl: 0.250 | psnr: 34.962 | best: 35.814 | iter_t: 1.323s | remain_t: 1 day, 12:35:52 | lr_g: 0.0000996 | lr_d: 0.0000100
+===========epoch:100 (step:400)============
+[400] G_fl_total: 0.065 | D_fl: 0.251 | psnr: 34.958 | best: 35.814 | iter_t: 1.099s | remain_t: 1 day, 6:24:04 | lr_g: 0.0000996 | lr_d: 0.0000100
+===========epoch:105 (step:420)============
+[420] G_fl_total: 0.063 | D_fl: 0.250 | psnr: 35.282 | best: 35.814 | iter_t: 1.365s | remain_t: 1 day, 13:46:02 | lr_g: 0.0000996 | lr_d: 0.0000100
+===========epoch:110 (step:440)============
+[440] G_fl_total: 0.053 | D_fl: 0.250 | psnr: 36.040 | best: 36.040 | iter_t: 1.194s | remain_t: 1 day, 9:01:18 | lr_g: 0.0000996 | lr_d: 0.0000100
+===========epoch:115 (step:460)============
+[460] G_fl_total: 0.070 | D_fl: 0.250 | psnr: 36.315 | best: 36.315 | iter_t: 1.183s | remain_t: 1 day, 8:42:15 | lr_g: 0.0000995 | lr_d: 0.0000100
+===========epoch:120 (step:480)============
+[480] G_fl_total: 0.078 | D_fl: 0.250 | psnr: 35.006 | best: 36.315 | iter_t: 1.175s | remain_t: 1 day, 8:28:33 | lr_g: 0.0000995 | lr_d: 0.0000100
+===========epoch:125 (step:500)============
+[500] G_fl_total: 0.106 | D_fl: 0.250 | psnr: 34.755 | best: 36.315 | iter_t: 1.162s | remain_t: 1 day, 8:07:03 | lr_g: 0.0000995 | lr_d: 0.0000099
+===========epoch:130 (step:520)============
+[520] G_fl_total: 0.045 | D_fl: 0.250 | psnr: 36.373 | best: 36.373 | iter_t: 0.973s | remain_t: 1 day, 2:53:45 | lr_g: 0.0000995 | lr_d: 0.0000099
+===========epoch:135 (step:540)============
+[540] G_fl_total: 0.040 | D_fl: 0.250 | psnr: 36.688 | best: 36.688 | iter_t: 1.089s | remain_t: 1 day, 6:04:27 | lr_g: 0.0000995 | lr_d: 0.0000099
+slurmstepd: error: *** JOB 362557 ON node04 CANCELLED AT 2023-05-29T16:26:20 ***
